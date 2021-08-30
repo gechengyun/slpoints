@@ -1,0 +1,77 @@
+<template lang="wxml">
+  <!--index.wxml-->
+  <view class="swiper-tab">
+    <view
+      wx:for="{{tabList}}"
+      wx:key="index"
+      class="swiper-tab-list {{activeTab===index ? 'active' : ''}}"
+      @tap="swich({{index}})"
+    >
+      <view>{{item}}</view>
+      <view class="line"></view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Filter extends wepy.component {
+  props = {
+    activeTab: {
+      default: null
+    },
+    tabList: {
+      type: Object
+    }
+  };
+  methods = {
+    /**
+     * 点击tab切换
+     */
+    swich(index) {
+      this.activeTab = index;
+      this.$emit('currentTab', this.activeTab);
+    }
+  };
+}
+</script>
+<style lang="less">
+/**index.wxss**/
+.swiper-tab {
+  width: 100%;
+  text-align: center;
+  line-height: 82rpx;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  background-color: #242537;
+}
+
+.swiper-tab-list {
+  flex:1;
+  text-align: center;
+  box-sizing: border-box;
+  font-size:32rpx;
+  color:#FFFFFF;
+}
+
+.active {
+  font-weight:600;
+  color:#FFFFFF;
+  .line {
+    width:76rpx;
+    height:4rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:2rpx;
+    margin: 0 auto;
+  }
+  
+}
+
+.swiper-box {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+</style>

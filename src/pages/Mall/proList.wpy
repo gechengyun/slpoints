@@ -1,0 +1,236 @@
+<template lang="wxml">
+  <view class="proList">
+    <BackHome bottom="50" flag="1"/>
+    <!-- 筛选按钮 -->
+    <view class="select">
+      <view class="wrap flex-between">
+        <view class="item {{salesActive?'active':''}}" @tap="salesClick(7)">销量</view>
+        <view class="item" @tap="selectClick">{{entName}}</view>
+      </view>
+    </view>
+    <!-- 产品列表 -->
+    <scroll-view class="product" scroll-y="true" wx:if="{{products.length > 0}}">
+      <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+        <ProItem :item='item'/>
+      </repeat>
+    </scroll-view>
+    <!-- 底线 -->
+    <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" />
+    <ProductDefault
+    wx:if="{{ finished && products.length === 0}}"
+    src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E5%95%86%E5%93%81~%403x.png'
+    tips='暂无商品~'
+    marginTop='300'
+    marginBottom='300'
+    imgWidth='260'
+    imgHeight='216'
+    />
+     <!-- 顶部筛选 -->
+    <view class="modal" catchtouchmove='true'>
+      <view class="over_modal {{hidden?'hidden':''}}" @tap.stop="closeModal"></view>
+      <view
+        class="panle_modal {{hidden?'hidden':''}}"
+        animation="{{animationData}}"
+      >
+        <view class="modal_content">
+          <view class="modal_content_son">
+            <scroll-view scroll-y="true" class="enterprise">
+              <repeat for="{{enterprise}}" wx:key="item.id" index="index" item="item">
+                <view class="{{selectEnt === item.id?'active':'tabItem'}}">
+                  <view class="text" @tap="enterpriseTap({{item}})">
+                    {{item.entName}}
+                  </view>
+                </view>
+              </repeat>
+            </scroll-view>
+          </view>
+        </view>
+        <view class="modal_bottom">
+          <view class="btn" @tap="reset">重置</view>
+          <view class="btn" @tap="confirm">确认</view>
+        </view>
+      </view>
+    </view>
+    <!-- 顶部筛选结束 -->
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+import tips from '@/utils/tip';
+import ProItem from '@/components/proItem';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import topModalMixin from '@/mixins/topModal';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+export default class ProList extends wepy.page {
+  config = {
+    navigationBarTitleText: '商品列表',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    ProItem,
+    ListBottom,
+    BackHome,
+    ProductDefault
+  }
+  data = {
+    salesActive: false,
+    modalHidden: true,
+    enterprise: [], // 企业
+    selectEnt: 0,
+    entName: '筛选',
+    keyword: null,
+    bizClass: null
+  };
+  mixins = [proPage, topModalMixin];
+  onLoad(options) {
+    if (options.value) {
+      this.keyword = options.value;
+    };
+    if (options.bizClass) {
+      this.bizClass = options.bizClass;
+    }
+    this.$apply();
+    this.proList(0, 2);
+    this.EnterpriseList();
+  }
+  onShow() {
+    this.createAnimation();
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList(0, 2);
+    }
+  }
+  methods = {
+    // 重置
+    reset() {
+      this.selectEnt = 0;
+      this.entName = '筛选';
+    },
+    // 确认
+    confirm() {
+      if (this.selectEnt === 0) {
+        tips.alert('请选择企业');
+        return false;
+      }
+      this.entName = this.selecEntName;
+      this.closeModalSon();
+      if (this.salesActive) {
+        this.proList(1, 4, this.selectEnt);
+      } else {
+        this.proList(1, 2, this.selectEnt);
+      }
+    },
+    // 销量筛选
+    salesClick(v) {
+      wx.pageScrollTo({
+        scrollTop: this.tabTop
+      });
+      this.salesActive = true;
+      if (this.selectEnt === 0) {
+        this.selectEnt = null;
+      }
+      this.proList(1, 4, this.selectEnt);
+    },
+    selectClick(v) {
+      this.openModalSon(632);
+      wx.pageScrollTo({
+        scrollTop: this.tabTop
+      });
+    },
+    enterpriseTap(value) {
+      this.selectEnt = value.id;
+      this.selecEntName = value.entName;
+    }
+  }
+  async proList(flag, searchType, entId) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      productType: 1, // 1、普通商品2、特惠商品
+      searchType, // 1积分特惠,2首页搜索,3热门推荐4、积分商城默认排序
+      entId,
+      keyword: this.keyword,
+      bizClass: this.bizClass
+    };
+    let resp = await api.productPage({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+  // 企业列表
+  async EnterpriseList() {
+    this.enterprise = [];
+    let res = await api.getEnterpriseList();
+    if (res.data.httpCode === '200') {
+      this.enterprise = res.data.data;
+      this.enterprise.unshift({ id: '', entName: '全部企业' });
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/topModal';
+.proList {
+  .select {
+    position: fixed;
+    top:0;
+    width: 750rpx;
+    padding: 10rpx 0 10rpx 0;
+    height:80rpx;
+    background:#242537;
+    z-index:2;
+    .wrap {
+      width: 650rpx;
+      margin: 0 auto;
+      .item {
+        width: 310rpx;
+        height: 80rpx;
+        border-radius: 40rpx;
+        font-size: 32rpx;
+        text-align: center;
+        color: @white-color;
+        line-height: 80rpx;
+        font-weight:600;
+        cursor: pointer;
+        .ellipsis();
+      }
+      .active {
+        color:@primary-color;
+      }
+    }
+  }
+  .product {
+    height: calc(100vh - 130px);
+    margin-top: 130rpx;
+  }
+  // 顶部弹框样式
+  .enterprise {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    margin: 30rpx;
+  }
+}
+</style>

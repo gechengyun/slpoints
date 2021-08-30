@@ -1,0 +1,105 @@
+<template lang="wxml">
+  <view class="search-point">
+    <view class="title">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title2-1.png" class="image" />
+    </view>
+    <view class="warp">
+        <view class="word">
+          1·您在积分钱包中，点击“<text class="blue">全局查询</text>”或者”按钮即可<text class="blue">查询</text>。
+        </view>
+        <view class="word">
+          “全局查询”可以帮您查看您列表中的所有类型积分的数量。“查询”可以帮您查看您列表中的固定企业积分的数量。
+        </view>
+        <view class="second-word">积分钱包>全局查询</view>
+        <view class="image1">
+            <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/2-1.png" class="image" />
+        </view>
+        <view class="second-word">积分钱包>查询</view>
+        <view class="image1">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/2-2.png" class="image" />
+        </view>
+    </view>
+    <navigator url="/pages/PointsWallet/index" hover-class="none"  class="btn">去查询</navigator>
+    <ListBottom marinTop="50" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+export default class HelpSalePoint extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分查询助手',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    ListBottom
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.search-point {
+  .title {
+    width:500rpx;
+    height:114rpx;
+    margin: 0 auto;
+    margin-top:40rpx;
+  }
+  .warp {
+    width:690rpx;
+    height: 1076rpx;
+    background:rgba(255,255,255,1);
+    border-radius:20rpx;
+    border:2rpx solid rgba(151,151,151,1);
+    margin: 0 auto;
+    padding: 40rpx 30rpx;
+    box-sizing: border-box;
+    .word {
+      font-size:32rpx;
+      color:rgba(51,51,51,1);
+      line-height:44rpx;
+      .blue {
+        color: #4354FF
+      }
+    }
+    .second-word {
+      font-size:28rpx;
+      color:rgba(102,102,102,1);
+      margin:40rpx 0 20rpx 0;
+    }
+    .image1 {
+      width:630rpx;
+      height:246rpx;
+    }
+    .line {
+      width:630rpx;
+      height:2rpx;
+      border-bottom: 1px dashed #979797;
+      margin: 60rpx 0 38rpx 0;
+    }
+  }
+  .btn {
+    width:590rpx;
+    height:100rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:50rpx;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 100rpx;
+    font-size:36rpx;
+    font-weight:600;
+    color:rgba(255,255,255,1);
+    margin-top:120rpx;
+    margin-bottom:50rpx;
+  }
+}
+</style>

@@ -1,0 +1,41 @@
+<template lang="wxml">
+  <view class="advertisement flex-between" wx:if="{{banner.length>0}}">
+    <repeat for="{{banner}}" key="index" index="index" item="item" >
+      <view class="adv-item"   @tap="swich({{item}})">
+        <image class="image" src="{{item.picture}}" />
+      </view>
+    </repeat>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Advertisement extends wepy.component {
+  data = {}
+  props = {
+    banner: {
+      type: Array
+    }
+  }
+  methods={
+    swich(item) {
+      this.$emit('jump', item);
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.advertisement {
+  width: 690rpx;
+  height: 150rpx;
+  margin: 0 auto;
+  margin-top: 40rpx;
+  .adv-item {
+    width: 340rpx;
+    .image {
+      border-radius:10rpx;
+    }
+  }
+}
+</style>

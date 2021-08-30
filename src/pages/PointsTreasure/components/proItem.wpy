@@ -1,0 +1,164 @@
+<template>
+  <view
+    class="proItem"
+    @tap="proDetail('{{item.prizeId}}')"
+  >
+    <view class="left">
+      <image
+        class="image pro_img"
+        src="{{item.prizePic}}"
+      />
+      <view class="issue ellipsis">期号：{{item.periodNum}}</view>
+    </view>
+    <view class="right">
+      <view class="pro_name">{{item.prizeName}}</view>
+      <view class="scrolls">
+        <view class="content">
+          <view
+            class="progress"
+            style="width:{{item.lotteryProgress}}%"
+          >
+            <view class="progressBg" />
+            <image
+              src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E6%A4%AD%E5%9C%86%E5%BD%A201%402x.png"
+              class="circle"
+            />
+          </view>
+        </view>
+      </view>
+      <view class="currentPer">
+        当前参与度：{{item.lotteryProgress}}%
+      </view>
+      <view class="text">
+        <view class="btnCss">立即夺宝</view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class proList extends wepy.component {
+  onShow() {
+  }
+  props = {
+    item: {},
+    flag: String
+  }
+  data = {
+  }
+  watch = {
+    item(v) {
+      console.log(v);
+    }
+  }
+  methods = {
+    proDetail(id) {
+      wx.navigateTo({
+        url: '/pages/PointsTreasure/detail?id=' + id
+      });
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.proItem {
+  position: relative;
+  width: 690rpx;
+  height: 242rpx;
+  background: rgba(71, 73, 105, 1);
+  box-shadow: 0px 10px 20px 0px rgba(6, 7, 32, 0.4);
+  border-radius: 10px;
+  margin: 0 auto;
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-wrap: nowrap;
+  .left {
+    width: 176rpx;
+    height: 176rpx;
+    background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/proBgi.png')
+      no-repeat center;
+    background-size: cover;
+    background-position: center 0;
+    margin: 12rpx 0rpx 0 16rpx;
+    .pro_img {
+      width: 160rpx;
+      height: 160rpx;
+      border-radius: 20rpx;
+      margin: 8rpx;
+    }
+    .issue {
+      text-align: center;
+      font-size: 18rpx;
+      color: rgba(174, 192, 255, 1);
+      .ellipsis();
+    }
+  }
+  .right {
+    margin: 20rpx;
+    width: 470rpx;
+    .pro_name {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: @white-color;
+      line-height: 44rpx;
+      .ellipsis();
+    }
+    .scrolls {
+      width: 384rpx;
+      height: 16rpx;
+      border-radius: 19rpx;
+      margin-top: 22rpx;
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(
+        315deg,
+        rgba(67, 84, 255, 1),
+        rgba(91, 253, 255, 1)
+      );
+      padding: 2rpx;
+      .content {
+        width: 100%;
+        height: 100%;
+        background: #474969;
+        border-radius: 19rpx;
+        .progress {
+          position: relative;
+          height: 16rpx;
+          border-radius: 19rpx;
+          background: linear-gradient(
+            135deg,
+            rgba(91, 253, 255, 1) 0%,
+            rgba(67, 84, 255, 1) 100%
+          );
+          .circle {
+            position: absolute;
+            right: -9rpx;
+            width: 20rpx;
+            height: 20rpx;
+            border-radius: 18rpx;
+            top: -2rpx;
+          }
+          .progressBg {
+            width: 100%;
+            position: absolute;
+            top: 0rpx;
+            height: 17rpx;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAADklEQVQIW2NgQAXGZHAAGioAza6+Hk0AAAAASUVORK5CYII=);
+          }
+        }
+      }
+    }
+    .currentPer {
+      font-size: 24rpx;
+      color: rgba(60, 196, 235, 1);
+      margin-top: 20rpx;
+    }
+    .text {
+      display: flex;
+      flex-direction: row-reverse;
+    }
+  }
+}
+</style>

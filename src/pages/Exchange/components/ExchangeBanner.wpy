@@ -1,0 +1,129 @@
+<template lang="wxml">
+  <view class="exchangeBanner">
+    <view class="search" @tap="searchJump" style="margin-bottom: 50rpx">
+      <view class="img"><image class="image" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/search.png" /></view>
+      <view class="text">{{inputValue}}</view>
+    </view>
+    <view style="height:100rpx;" wx:if="{{banner.length === 0}}"/>
+    <view wx:if="{{banner.length > 0}}">
+      <swiper indicator-dots="{{false}}"
+        class="swiper"
+        autoplay="true" 
+        interval="{{banner[0].speed*1000}}" 
+        duration="{{duration}}" 
+        circular="true" 
+        current="{{currentSwiper}}" 
+        bindchange="bindchange">
+        <repeat for="{{banner}}" wx:key="index" index="index" item="item" >
+          <swiper-item class="item">
+            <image src="{{item.picture}}" class="image"  @tap="swich({{item}})"/>
+          </swiper-item>
+        </repeat>
+      </swiper>
+      <view class="banner-bottom" style="">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%BD%A2%E7%8A%B6%E7%BB%93%E5%90%88%402x.png" class="image"/>
+      </view>
+      <view class="dots">
+        <repeat for="{{banner}}" wx:key="index" index="index" item="item" >
+          <view class="{{index == current ? 'active' : 'dot'}}" style="right: {{5*index}}px"></view>
+        </repeat>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class ExchangeBanner extends wepy.component {
+  data = {
+    duration: 500,
+    currentSwiper: 0,
+    current: 0
+  }
+  props = {
+    banner: {
+      type: Array
+    },
+    inputValue: {
+      type: String
+    }
+  }
+  methods={
+    bindchange(e) {
+      this.current = e.detail.current;
+    },
+    searchJump() {
+      this.$emit('searchJump');
+    },
+    swich(item) {
+      this.$emit('jump', item);
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+ .exchangeBanner {
+    width: 100%;
+    position: relative;
+    .search {
+      position: absolute;
+      top: 20rpx;
+      left: 60rpx;
+      width: 630rpx;
+      height: 64rpx;
+      background: rgba(216, 216, 216, 0.3);
+      border-radius: 36rpx;
+      color: rgba(255, 255, 255, 1);
+      cursor: pointer;
+      display: flex;
+      flex-wrap: nowrap;
+      z-index: 3;
+      .img {
+        width: 36rpx;
+        height: 36rpx;
+        margin: 14rpx 0 0 40rpx;
+      }
+      .text {
+        line-height: 64rpx;
+        margin-left: 20rpx;
+      }
+    }
+    .swiper {
+      height: 400rpx;
+    }
+    .banner-bottom {
+      position: absolute;
+      top: 370rpx;
+      width: 750rpx;
+      height: 36rpx;
+    }
+    .dots {
+      width: 100%;
+      height: 20rpx;
+      margin: 0 auto;
+      margin-top: 10rpx;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      /*未选中时的小圆点样式 */
+      .dot {
+        border-radius: 50%;
+        width: 6rpx;
+        height: 6rpx;
+        background: rgba(32, 172, 204, 1);
+        border-radius: 3px;
+        margin-right: 10rpx;
+        margin-top: 4rpx;
+      }
+      /*选中以后的小圆点样式 */
+      .active {
+        width: 6rpx;
+        height: 14rpx;
+        background: rgba(84, 246, 255, 1);
+        border-radius: 3rpx;
+        margin-right: 10rpx;
+      }
+    }
+  }
+</style>

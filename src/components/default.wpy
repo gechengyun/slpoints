@@ -1,0 +1,32 @@
+<template>
+  <view class="defalut">
+    <image src="/images/default.png" class="defalutImg"/>
+    <view class="word">{{word}}</view>
+  </view>  
+</template>
+<script>
+import wepy from 'wepy';
+export default class Defalut extends wepy.component {
+  props = {
+    word: String
+  }
+}
+</script>
+<style lang="less" scoped>
+.defalut {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction:column;
+  .defalutImg {
+    width: 510rpx;
+    height: 308rpx;
+    margin: 0 auto;
+  }
+  .word {
+    margin-top: 58rpx;
+    font-size: 32rpx;
+    color: rgba(153, 153, 153, 1);
+    text-align: center;
+  }
+}
+</style>

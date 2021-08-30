@@ -1,0 +1,467 @@
+<template lang="wxml">
+  <view class="exchangeOrder">
+    <view class="head">
+      <view class="wrap flex-between">
+        <view class="proImg">
+          <image class="image" src="{{proDetail.picture}}"/>
+        </view>
+        <view class="proDesc">
+          <view class="proName">{{proDetail.productName}}</view>
+          <view class="price">商品单价（{{proDetail.pointName}}）：{{proDetail.salePoints}}积分</view>
+          <view class="price">商品数量：{{proDetail.inputValue}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="strip" />
+    <view class="payPoints flex-between">
+      <view class="left">应付积分（{{proDetail.pointName}}）：</view>
+      <view class="right flex-between">
+        <view>{{proDetailBak.totalPoints}}</view>
+        <view class="jf">积分</view>
+      </view>
+    </view>
+    <view class="strip" />
+    <view class="content">
+      <view class="title">请选择支付积分</view>
+      <scroll-view class="wrap" scroll-y="true" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
+        <repeat for="{{pointsList}}" wx:key="item.id" index="index" item="item">
+          <view class="item">
+            <view class="top flex-between">
+              <view class="flex-between" @tap="check('{{index}}','{{item.checkValue}}','{{item}}')">
+                <view class="checkBox">
+                  <view class="a" wx:if="{{item.checkValue}}"></view>
+                </view>
+                <view class="pointName">{{item.pointName}}</view>
+              </view>  
+              <view class="arrow" @tap="arrowClick('{{index}}','{{item.show}}')">
+                <image src="/images/up.png" class="image" />
+              </view>
+            </view>
+            <view hidden="{{item.show}}">
+              <view class="container flex-between">
+                <view
+                class="points_icon"
+                @tap="buttonTap('{{index}}','{{item}}',0)"
+                ><image src="/images/added.png" class="image"/></view>
+                <slider
+                data-index="{{index}}"
+                bindchange="intervalChange"
+                class="slider"
+                step="1"
+                min="0"
+                max="{{item.deductNum}}"
+                activeColor="#AEC0FF"
+                block-size="12"
+                value="{{item.num}}"
+                disabled="{{!item.checkValue || item.checkValue === false ? true:false}}"
+                block-color="#4354FF"/>
+                <view
+                class="points_icon"
+                @tap="buttonTap('{{index}}','{{item}}',1)"
+                ><image src="/images/add.png" class="image"/></view>
+              </view>
+              <view class="pointNum">
+                <view class="text" style="left:{{item.left}}%">{{item.noPointsValue}}积分</view>
+              </view>
+              <view class="totalPoints">可抵扣{{proDetail.pointName}}：{{item.num}}积分</view>
+            </view>
+          </view>
+        </repeat>
+      </scroll-view>
+      <view class="bottom flex-between">
+        <view class="left">已抵扣{{proDetail.pointName}}：</view>
+        <view class="right">{{proDetail.totalPoints}}积分</view>
+      </view>
+    </view>
+    <button class="btn commonbtn" @tap="pay">确认支付</button>
+    <!-- 确认取消模态框 -->
+    <exModal
+      title="兑换确认"
+      hidden="{{modalHidden}}"
+      @cancel.user="modalCandel"
+      @confirm.user="modalConfirm"
+      confirmText="确认兑换"
+      closeText="取消"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/1.png"
+    >
+      <view class="modal-content">
+        <repeat for="{{payList}}" wx:key="item.id" index="index" item="item">
+          <view>{{item.pointName}}: {{item.tranNum}}</view>
+        </repeat>
+      </view>
+    </exModal>
+    <!-- 确认取消模态框 -->
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import WepyHTML from 'wepy-html';
+import api from '@/api/EdaApi';
+import exModal from '@/components/ExModal';
+import tips from '@/utils/tip';
+export default class ExchangeOrder extends wepy.page {
+  config = {
+    navigationBarTitleText: '兑换订单',
+    enablePullDownRefresh: false,
+    disableScroll: true
+  };
+  components = {
+    'wepy-html': WepyHTML,
+    exModal
+  }
+  data = {
+    modalHidden: true,
+    value: 12,
+    proDetail: '',
+    proDetailBak: '',
+    pointsList: [],
+    payList: []
+  };
+  onLoad(options) {
+    this.proDetail = JSON.parse(options.query);
+    this.proDetailBak = JSON.parse(options.query);
+    this.queryDeductNum();
+  }
+  onShow() {
+  }
+  methods = {
+    // 箭头
+    arrowClick (index, item) {
+      this.pointsList[index].show === false ? this.pointsList[index].show = true : this.pointsList[index].show = false;
+    },
+    // 打勾
+    check(index, value, item) {
+      this.pointsList[index].checkValue === false ? this.pointsList[index].checkValue = true : this.pointsList[index].checkValue = false;
+      if (this.pointsList[index].checkValue === false) {
+        this.pointsList[index].num = 0;
+        this.pointsList[index].noPointsValue = 0;
+        this.pointsList[index].left = -10;
+      } else {
+        let num = this.proDetailBak.totalPoints * 1 - this.proDetail.totalPoints * 1;
+        if (num > 0) {
+          if (num < item.deductNum) {
+            item.num = num;
+            this.pointsList[index].num = num;
+          } else {
+            item.num = item.deductNum * 1;
+            this.pointsList[index].num = item.deductNum * 1;
+          }
+          this.pointsList[index].left = (item.num / item.deductNum) * 100 - 10;
+          this.countDeductNum(this.proDetail.pointCode, item, index);
+        }
+      }
+      this.sumTotalPoints();
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    },
+    // 去导入
+    modalConfirm() {
+      this.payOrder();
+    },
+    intervalChange(e) {
+      let listData = [...this.pointsList];
+      listData[e.currentTarget.dataset['index']].num = e.detail.value;
+      listData[e.currentTarget.dataset['index']].left = (e.detail.value / listData[e.currentTarget.dataset['index']].deductNum) * 100 - 10;
+      this.sumTotalPoints();
+      this.pointsList = listData;
+      this.$apply();
+      this.countNum(this.pointsList[e.currentTarget.dataset['index']], e.currentTarget.dataset['index']);
+    },
+    buttonTap(index, item, flag) {
+      // 禁用
+      if (!item.checkValue || item.checkValue === false) {
+        return false;
+      }
+      let listData = [...this.pointsList];
+      if (flag === '1') {
+        if (listData[index].num >= item.deductNum) {
+          return false;
+        }
+        listData[index].num++;
+        this.proDetail.totalPoints++;
+      } else {
+        if (listData[index].num <= 0) {
+          return false;
+        }
+        listData[index].num--;
+        this.proDetail.totalPoints--;
+      }
+      item.left = (item.num / item.deductNum) * 100 - 10;
+      this.pointsList = listData;
+      this.$apply();
+      this.countNum(this.pointsList[index], index);
+    },
+    // 确认支付
+    pay() {
+      if (this.proDetailBak.totalPoints < this.proDetail.totalPoints) {
+        tips.error('积分太多，省下兑其他的！');
+        return false;
+      };
+      if (this.proDetailBak.totalPoints > this.proDetail.totalPoints) {
+        tips.error('积分不够，再去增加些吧！');
+        return false;
+      };
+      let payList = [];
+      this.pointsList.map((item) => {
+        if (item.num !== 0) {
+          payList.push({ deductNum: item.num, pointCode: item.pointCode, pointName: item.pointName, tranNum: item.noPointsValue });
+        }
+      });
+      this.payList = payList;
+      this.$apply();
+      this.modalHidden = false;
+    }
+  }
+  // 计算总数
+  sumTotalPoints () {
+      // 总数
+    let totalPoints = 0;
+    this.pointsList.map((item) => {
+      if (item.deductNum !== '0') {
+        totalPoints += item.num;
+      };
+    });
+    this.proDetail.totalPoints = totalPoints;
+    this.$apply();
+  }
+  // 支付
+  async payOrder() {
+    let query = {
+      orderPoints: this.proDetail.totalPoints,
+      orderSource: 1,
+      payList: this.payList,
+      productCount: this.proDetail.inputValue,
+      productId: this.proDetail.productId
+    };
+    this.modalHidden = true;
+    wx.reLaunch({
+      url: '/pages/ProDetail/paySucc?query=' + JSON.stringify(query)
+    });
+  }
+  // 换算公式
+  countNum(item, index) {
+    this.countDeductNum(this.proDetail.pointCode, item, index);
+  }
+  // 换算
+  async countDeductNum(pointCode, item, index) {
+    let query = {
+      tranNum: item.num,
+      pointCode: pointCode,
+      noPointCode: item.pointCode, // [{outNum: 0,outPointCode: 1}],
+      productId: this.proDetail.productId
+    };
+    let res = await api.queryOrderDeductNum({ method: 'POST', query: query });
+    if (res.data.httpCode === '200') {
+      item.noPointsValue = res.data.data;
+      if (index !== undefined) {
+        this.pointsList[index].noPointsValue = res.data.data;
+      }
+      this.$apply();
+    } else {
+      tips.error(res.data.msg);
+    }
+  }
+  // 获取当前积分列表
+  async queryDeductNum() {
+    let res = await api.queryDeductNum({ method: 'POST', productId: this.proDetail.productId });
+    if (res.data.httpCode === '200') {
+      let pointsList = res.data.data;
+      // 排序
+      let array = [];
+      let totalPoints = this.proDetail.totalPoints;
+      pointsList.map((item, index) => {
+        item.noPointsValue = 0;
+        if (item.deductNum !== '0') {
+          if (totalPoints > item.deductNum * 1) {
+            item.num = item.deductNum * 1;
+            totalPoints = totalPoints - item.deductNum * 1;
+          } else {
+            item.num = totalPoints;
+            totalPoints = 0;
+          };
+          item.left = (item.num / item.deductNum) * 100 - 10;
+          if (item.num !== 0) {
+            item.checkValue = true;
+            this.countDeductNum(this.proDetail.pointCode, item);
+          }
+          item.show = false;
+          array.push(item);
+        }
+      });
+      this.pointsList = [...array];
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+button {
+  padding: 0px !important;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.exchangeOrder {
+  .head {
+    width: 750rpx;
+    .wrap {
+      width: 690rpx;
+      margin: 0 auto;
+      margin-top: 20rpx;
+      margin-bottom: 20rpx;
+      .proImg {
+        width: 160rpx;
+        height: 160rpx;
+      }
+      .proDesc {
+        flex: 1;
+        margin-left: 20rpx;
+        .proName {
+          font-weight: 600;
+          color: rgba(51, 51, 51, 1);
+          line-height: 40rpx;
+        }
+        .price {
+          font-size: 24rpx;
+          font-weight: 400;
+          color: rgba(102, 102, 102, 1);
+          margin-top: 10rpx;
+        }
+      }
+    }
+  }
+  .payPoints {
+    height: 88rpx;
+    width: 100%;
+    line-height: 88rpx;
+    .left {
+      font-size: 24rpx;
+      color: rgba(102, 102, 102, 1);
+      margin-left: 30rpx;
+    }
+    .right {
+      font-size: 40rpx;
+      font-weight: bold;
+      color: rgba(51, 51, 51, 1);
+      margin-right: 30rpx;
+      .jf {
+        font-size: 20rpx;
+        font-weight: 400;
+        margin-left: 10rpx;
+      }
+    }
+  }
+  .content {
+    .title {
+      width: 690rpx;
+      height: 104rpx;
+      margin: 0 auto;
+      font-size: 32rpx;
+      font-weight: 600;
+      color: rgba(51, 51, 51, 1);
+      border-bottom: 1px solid #d8d8d8;
+      line-height: 104rpx;
+    }
+    .wrap {
+      height: 40vh;
+      .item {
+        width: 650rpx;
+        margin: 0 auto;
+        .top {
+          margin-top: 28rpx;
+          .checkBox {
+            width: 28rpx;
+            height: 28rpx;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 4rpx;
+            border: 1px solid rgba(216, 216, 216, 1);
+            margin-top: 5rpx;
+            line-height: 28rpx;
+            padding-left: 5rpx;
+            padding-right: 5rpx;
+            box-sizing: border-box;
+            .a{ display: inline-block; width: 10rpx;height:4rpx; background: #000;line-height: 0;font-size:0;vertical-align: middle;-webkit-transform: rotate(45deg);}
+            .a:after{content:'/';display:block;width: 20rpx;height:4rpx; background: #000;-webkit-transform: rotate(-90deg) translateY(-50%) translateX(50%);}
+          }
+          .pointName {
+            flex: 1;
+            font-weight: 600;
+            color: rgba(51, 51, 51, 1);
+            margin-left: 10rpx;
+          }
+          .arrow {
+            width: 29rpx;
+            height: 16rpx;
+          }
+        }
+        .container {
+          width: 570rpx;
+          margin: 0 auto;
+          height: 78rpx;
+          .points_icon {
+            width: 48rpx;
+            height: 48rpx;
+            text-align: center;
+            line-height: 48rpx;
+            margin-top: 35rpx;
+          }
+          .slider {
+            width: 404rpx;
+            margin-top: 45rpx;
+          }
+        }
+        .pointNum {
+          display: flex;
+          font-size: 24rpx;
+          color: rgba(51, 51, 51, 1);
+          margin-right: 40rpx;
+          margin-top: 8rpx;
+          width: 404rpx;
+          margin-left: 130rpx;
+          position: absolute;
+          .text {
+            position: relative;
+            left:100%;
+          }
+        }
+        .totalPoints {
+          display: flex;
+          flex-direction: row-reverse;
+          margin-top: 50rpx;
+          font-size: 24rpx;
+          font-weight: 400;
+          color: rgba(102, 102, 102, 1);
+          margin-bottom: 30rpx;
+        }
+      }
+    }
+    .bottom {
+      width: 690rpx;
+      height: 104rpx;
+      margin: 0 auto;
+      font-weight: 600;
+      color: rgba(51, 51, 51, 1);
+      border-top: 1px solid #d8d8d8;
+      line-height: 104rpx;
+      .left {
+        font-size: 24rpx;
+        font-weight: 400;
+        color: rgba(102, 102, 102, 1);
+        margin-left: 20rpx;
+      }
+      .right {
+        font-size: 32rpx;
+        font-weight: 400;
+        color: rgba(51, 51, 51, 1);
+        margin-right: 20rpx;
+      }
+    }
+  }
+  .btn {
+    .commonbtn(50rpx);
+  }
+}
+</style>

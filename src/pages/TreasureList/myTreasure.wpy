@@ -1,0 +1,135 @@
+<template lang="wxml">
+  <view class="myTreasure">
+    <BackHome bottom="50" flag="1"/>
+    <view class="header">
+      <tab @currentTab.user="getCurrentTab" :tabList.sync="tabList" :activeTab.sync="activeTab"></tab>
+    </view>
+    <scroll-view scroll-y="{{true}}" class="record-lists-box" wx:if="{{products.length > 0}}" bindscrolltolower="lower">
+      <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+        <ProItem :item='item' @exchange.user="exchange"/>
+      </repeat>
+    </scroll-view>
+    <!-- 底线 -->
+    <view style="margin-top:30rpx">
+      <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" />
+    </view>
+    <view  wx:if="{{ finished && products.length === 0}}">
+      <ProductDefault
+        src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/treasure.png'
+        :tips.sync='tips'
+        marginTop='300'
+        marginBottom='60'
+        imgWidth='260'
+        imgHeight='226'
+        color="#fff"
+      />
+      <navigator url="/pages/PointsTreasure/index" hover-class="none"  class="noBtn">
+        马上参与
+      </navigator>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import Tab from './components/tab';
+import api from '@/api/api';
+import Defalut from '@/components/default';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+import ProItem from './components/proItem';
+export default class myTreasure extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的夺宝',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    tab: Tab,
+    Defalut,
+    ListBottom,
+    BackHome,
+    ProductDefault,
+    ProItem
+  };
+  mixins = [proPage];
+  data = {
+    activeTab: 0,
+    tabList: ['全部', '进行中', '已结束'],
+    status: null,
+    selectPoint: {},
+    tipsDefaultList: ['还未参与任何活动', '还未参与任何活动', '暂无已结束活动'],
+    tips: '还未参与任何活动'
+  };
+  methods = {
+    getCurrentTab(v) {
+      this.tips = this.tipsDefaultList[v];
+      this.status = null;
+      if (v === 1) {
+        this.status = 7;
+      }
+      if (v === 2) {
+        this.status = 8;
+      }
+      this.$apply();
+      this.proList(1);
+    }
+  };
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      treasureStatus: this.status // 7进行中，8已结束
+    };
+    let resp = await api.getMyPeriodList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList();
+    }
+  }
+  onShow() {
+    this.proList(1);
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.myTreasure {
+  .image {
+    width: 100%;
+    height: 100%;
+  }
+  width: 750rpx;
+  height: 100vh;
+  .record-lists-box {
+    height: calc(100vh - 130px);
+    margin-top: 30rpx;
+  }
+  .noBtn {
+    width:220rpx;
+    height:60rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:10rpx
+  }
+}
+</style>

@@ -1,0 +1,233 @@
+<template lang="wxml">
+  <view class="changePhone">
+    <view class="header">
+    </view>
+    <view class="content">
+      <view class="title" wx:if="{{!phoneDisable}}">
+        切换手机号码
+      </view>
+      <view class="phone flex-between">
+        <input class="userMobile" 
+        type="number"  
+        placeholder="请输入手机号"  
+        placeholder-style="color:rgba(153,153,153,1);font-size:24rpx;font-weight:400;" 
+        focus="{{!flag}}" 
+        value="{{userMobile}}"  
+        bindinput="bindPhoneInput" 
+        disabled="{{phoneDisable}}"/>
+        <view class="change" @tap.stop="exchangePhone">切换</view>
+      </view>
+      <view class="smsCode flex-between" wx:if="{{!phoneDisable}}">
+        <input class="smsCode-left" type="text" value="{{smsCode}}"  bindinput="bindSmsCodeInput"
+          placeholder="请输入验证码"
+          placeholder-style="color:rgba(153,153,153,1);font-size:24rpx;font-weight:400;"/>
+        <view style="border:1px solid #fff">
+          <button disabled="{{btnDis}}" class="smsCode-right" @tap.stop="getCode">{{codeMsg}}</button>
+        </view>
+      </view>
+      <view class="btn commonbtn" @tap="search">积分查询</view>
+    </view>
+    <ListBottom />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import tips from '@/utils/tip';
+import api from '@/api/api';
+import api1 from '@/api/EdaApi';
+import ListBottom from '@/components/listBottom';
+import { USER_SPECICAL_INFO } from '@/utils/constant';
+export default class ChangePhone extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分批量查询',
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  data = {
+    userMobile: '',
+    phoneDisable: true,
+    smsCode: '',
+    codeMsg: '获取验证码',
+    btnDis: false,
+    query: {},
+    flag: false
+  }
+  components={
+    ListBottom
+  }
+  onHide() {
+    clearInterval(this.interval);
+    this.interval = '';
+  }
+  onUnload() {
+    clearInterval(this.interval);
+    this.interval = '';
+  }
+  onLoad() {
+    this.codeMsg = '获取验证码';
+    let userInfo = wepy.getStorageSync(USER_SPECICAL_INFO);
+    this.userMobile = userInfo.phone;
+    this.userMobileBak = userInfo.phone;
+  }
+    // 验证手机号
+  validatePhone() {
+    if (this.userMobile === '') {
+      tips.error('请填写手机号');
+      return false;
+    }
+    if (!(/^1[3456789]\d{9}$/.test(this.userMobile))) {
+      tips.error('请输入正确的手机号');
+      return false;
+    }
+    return true;
+  }
+  methods = {
+    bindPhoneInput(e) {
+      this.userMobile = e.detail.value;
+    },
+    // 去导入
+    async search() {
+      if (this.userMobileBak !== this.userMobile) {
+        if (this.userMobile === '') {
+          tips.error('请输入手机号');
+          return false;
+        }
+        if (this.smsCode === '') {
+          tips.error('请输入验证码');
+          return false;
+        }
+      }
+      this.query = {
+        userMobile: this.userMobile,
+        smsCode: this.smsCode
+      };
+      if (this.phoneDisable === false) {
+        let resp = await api1.checkPhone({method: 'POST', query: this.query});
+        if (resp.data.httpCode !== '200') {
+          return false;
+        }
+      }
+      this.$parent.globalData.pointAllCheck = this.query;
+      this.$parent.globalData.loginFlag = 1;
+      wx.navigateBack();
+    },
+    // 切换手机号
+    exchangePhone() {
+      if (this.phoneDisable === false) {
+        this.flag = true;
+      }
+      this.userMobile = '';
+      this.phoneDisable = false;
+      this.codeMsg = '获取验证码';
+      this.$apply();
+    },
+    bindSmsCodeInput(e) {
+      this.smsCode = e.detail.value;
+    },
+    // 验证手机号
+    async getCode() {
+      if (!this.validatePhone()) {
+        return false;
+      }
+      this.codeMsg = 60;
+      this.btnDis = true;
+      this.interval = setInterval(() => {
+        this.codeMsg--;
+        if (this.codeMsg <= 0) {
+          this.btnDis = false;
+          this.codeMsg = '获取验证码';
+          clearInterval(this.interval);
+        }
+        this.$apply();
+      }, 1000);
+      let res = await api.sendRandCode({method: 'POST', query: {msgType: 4, phone: this.userMobile}});
+      if (res.data.httpCode === '200') {
+        tips.success('发送成功!');
+        this.$apply();
+      } else {
+        tips.error(res.data.msg);
+      }
+    }
+  }
+}
+</script>
+<style lang="less">
+button::after{
+  border: 0px solid #fff!important;
+}
+button {
+  padding: 0!important;
+  font-weight: 100;
+}
+</style>
+<style lang="less" scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.changePhone {
+  .header {
+    width:750rpx;
+    height:216rpx;
+    background: #242537;
+    color:#fff;
+  }
+  .content {
+    position: absolute;
+    height: 544rpx;
+    top:100rpx;
+    left: 40rpx;
+    width:670rpx;
+    background:rgba(255,255,255,1);
+    box-shadow:0px 10rpx 30rpx 0rpx rgba(130,136,202,0.2);
+    border-radius:20rpx;
+    padding: 0 40rpx;
+    box-sizing: border-box;
+    .title {
+      height: 144rpx;
+      line-height: 144rpx;
+      font-size:32rpx;
+      border-bottom:1px solid #F6F6F6;
+      font-size:32rpx;
+      font-weight:600;
+    }
+    .phone {
+      height: 144rpx;
+      line-height: 144rpx;
+      font-size:32rpx;
+      border-bottom:1px solid #F6F6F6;
+      .userMobile {
+        height: 144rpx;
+      }
+      .change {
+        font-size:24rpx;
+        color:rgba(153,153,153,1);
+      }
+    }
+    .smsCode {
+      height: 144rpx;
+      line-height: 144rpx;
+      border-bottom:1px solid #F6F6F6;
+      .smsCode-left {
+        height: 144rpx;
+      }
+      .smsCode-right {
+        width:148rpx;
+        height:46rpx;
+        background:rgba(255,255,255,1);
+        border-radius:4rpx!important;
+        border:1px solid rgba(67,84,255,1)!important;
+        text-align: center;
+        line-height: 46rpx;
+        font-size:24rpx;
+        color:rgba(67,84,255,1);
+        margin-top: 34rpx;
+      }
+    }
+    .btn {
+      .commonbtn(198rpx);
+    }
+  }
+
+}
+
+</style>

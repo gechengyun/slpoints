@@ -1,0 +1,196 @@
+<template>
+  <view class="order">
+    <BackHome bottom="10"/>
+    <scroll-view class="scrollview" scroll-y="{{true}}" wx:if="{{ products.length > 0}}" bindscrolltolower="lower">
+      <view class="wrap">
+        <repeat
+          for="{{products}}"
+          wx:key="{{item.id}}"
+          index="index"
+          item="item"
+        >
+          <navigator
+            url="/pages/Order/detail?id={{item.id}}&&productId={{item.productId}}"
+            hover-class="none"
+            class="item"
+          >
+            <view class="line">
+              <image src="/images/line.png" class="image"/>
+            </view>
+            <view class="top flex-between">
+              <view class="id">订单编号：{{item.id}}</view>
+              <view class="status">交易成功</view>
+            </view>
+            <view class="desc flex-between">
+              <view class="logo">
+                <image
+                  class="image"
+                  src="{{item.picture}}"
+                />
+              </view>
+              <view class="right">
+                <view class="proName"><text wx:if="{{item.orderType === '1'}}">【夺宝码】</text>{{item.productName}}</view>
+                <view class="time">{{item.updateTimeForsysnc}}</view>
+              </view>
+            </view>
+            <view class="line1"></view>
+            <view class="bottom">
+              <view class="btn">
+                订单详情
+              </view>
+            </view>
+
+          </navigator>
+        </repeat>
+      </view>
+    </scroll-view>
+    <view  wx:if="{{ finished && products.length === 0}}">
+      <ProductDefault
+        src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E4%BA%A4%E6%8D%A2%E8%AE%B0%E5%BD%95%402x.png'
+        tips='暂无兑换记录'
+        marginTop='300'
+        marginBottom='60'
+        imgWidth='260'
+        imgHeight='226'
+        color="#333"
+      />
+      <navigator url="/pages/Mall/index" hover-class="none" class="noBtn" open-type="switchTab">
+        马上兑换
+      </navigator>
+    </view>
+    <ListBottom position="absolute" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+export default class Order extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的兑换',
+    disableScroll: true
+  };
+  data = {
+  }
+  mixins = [proPage];
+  components = {
+    ListBottom,
+    BackHome,
+    ProductDefault
+  }
+  onShow() {
+    this.page.pageNum = 1;
+    this.products = [];
+    this.proList();
+  }
+  async proList() {
+    let query = {
+      status: 1,
+      page: this.page
+    };
+    let resp = await api.orderPage({ method: 'POST', query: query });
+    this.loading = false;
+    // 处理数据
+    this.handleResponse(resp);
+  }
+}
+</script>
+
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.order {
+  .noBtn {
+    margin-bottom: 350rpx;
+  }
+  .scrollview {
+    width: 750rpx;
+    height: 90vh;
+    .wrap {
+      margin-top: 30rpx;
+      width: 690rpx;
+      margin: 0 auto;
+      .item {
+        height: 346rpx;
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0rpx 10rpx 30rpx 0px rgba(130, 136, 202, 0.2);
+        margin-bottom: 30rpx;
+        position:relative;
+        .line {
+          width: 690rpx;
+          position:absolute;
+          top:50rpx;
+          height: 38rpx;
+        }
+        .top {
+          height: 64rpx;
+          line-height: 54rpx;
+          font-size: 24rpx;
+          padding: 7rpx 20rpx;
+          box-sizing: border-box;
+          .id {
+            font-weight: 400;
+            color: rgba(153, 153, 153, 1);
+          }
+          .status {
+            color: rgba(67, 84, 255, 1);
+          }
+        }
+        .desc {
+          padding: 0 20rpx;
+          box-sizing: border-box;
+          height: 196rpx;
+          // border-bottom: 1px solid #d8d8d8;
+          margin-top: 20rpx;
+          .logo {
+            width: 160rpx;
+            height: 160rpx;
+            margin-top: 18rpx;
+          }
+          .right {
+            margin-top: 18rpx;
+            height: 160rpx;
+            width: 470rpx;
+            margin-left: 20rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            .proName {
+              color: rgba(51, 51, 51, 1);
+            }
+            .time {
+              font-size: 20rpx;
+              font-weight: 400;
+              color: rgba(153, 153, 153, 1);
+            }
+          }
+        }
+        .line1 {
+          width:650rpx;
+          height:4rpx;
+          border-bottom: 1px solid #D8D8D8;
+          margin: 0 auto;
+        }
+        .btn {
+          width: 100rpx;
+          height: 40rpx;
+          background: rgba(255, 255, 255, 1);
+          border-radius: 4rpx;
+          border: 1rpx solid rgba(67, 84, 255, 1);
+          line-height: 40rpx;
+          text-align: center;
+          font-size: 20rpx;
+          color: rgba(67, 84, 255, 1);
+          margin-top: 10rpx;
+          margin-right: 20rpx;
+          float: right;
+        }
+      }
+    }
+  }
+ 
+}
+</style>

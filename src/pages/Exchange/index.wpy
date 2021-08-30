@@ -1,0 +1,311 @@
+<template lang="wxml">
+  <view class="exchange">
+    <!-- banner -->
+    <ExchangeBanner  :inputValue.sync="inputValue" @searchJump.user="selectClick" :banner.sync="banner" @jump.user="bannerRouteJump" />
+    <view class="nav flex-between">
+      <navigator url="/pages/Exchange/apply" hover-class="none">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/make.png" class="image" />
+      </navigator>
+      <navigator url="/pages/Exchange/exchangeRecordList" hover-class="none">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/record.png" class="image"/>
+      </navigator>
+    </view>
+    <view class="wrap">
+      <view class="title">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/%E4%BA%A4%E6%8D%A2%E5%B8%82%E5%9C%BA%403x.png" class="image"/>
+      </view>
+      <view class="contain">
+        <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+          <ExchangeItem :item='item' @exchange.user="exchange"/>
+        </repeat>
+        <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" marginTop="58" height="120"/>
+      </view>
+      <ProductDefault
+      wx:if="{{ finished && products.length === 0}}"
+      src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/%E6%9A%82%E6%97%A0%E5%BE%85%E4%BA%A4%E6%8D%A2%E7%94%B3%E8%AF%B7%403x.png'
+      tips='暂无待交换申请'
+      marginTop='300'
+      marginBottom='400'
+      imgWidth='260'
+      imgHeight='216'
+      />
+    </view>
+    <!-- 顶部筛选 -->
+    <view class="modal" catchtouchmove='true'>
+      <view class="over_modal {{hidden?'hidden':''}}" @tap.stop="closeModal"></view>
+      <view
+        class="panle_modal {{hidden?'hidden':''}}"
+        animation="{{animationData}}"
+      >
+        <view class="modal_content">
+          <view class="modal_content_son">
+            <view class="select">
+              <view class="head">
+                <view class="left">
+                  <view class="search_icon"><image class="image" src="/images/search.png" /></view>
+                  <input
+                    class='input'
+                    placeholder="搜你喜欢"
+                    value="{{inputValue}}"
+                    bindinput="bindKeyInput"
+                  />
+                </view>
+                <view class="cancel" @tap="cancels">取消</view>
+              </view>
+              <view class="tip">请选择搜索范围：</view>
+              <view class="bottom">
+                <repeat for="{{type}}" wx:key="item" index="index" item="item">
+                  <view class="{{selectType === index?'active':'tabItem'}}">
+                    <view class="text" @tap="selectTap({{index}})">
+                      {{item}}
+                    </view>
+                  </view>
+                </repeat>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="modal_bottom">
+          <view class="btn" @tap.stop="closeModal">取消</view>
+          <view class="btn" @tap="confirm">确认</view>
+        </view>
+      </view>
+    </view>
+    <!-- 顶部筛选结束 -->
+    <!-- 确认取消模态框 -->
+    <exModal
+      title="积分交换确认"
+      hidden="{{modalHidden}}"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      confirmText="确认"
+      closeText="取消"
+      height="554"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/2.png"
+    >
+      <view class="modal-content">
+        <view>使用{{selectItem.exInTranNum}}个{{selectItem.inPointName}}</view>
+        <view>换回{{selectItem.exOutTranNum}}个{{selectItem.outPointName}}</view>
+      </view>
+    </exModal>
+    <Bottom src2='/images/tabIcon/exchanged.png'/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/api';
+import tips from '@/utils/tip';
+import ProItem from '@/components/proItem';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import ExchangeItem from './components/ExchangeItem';
+import exModal from '@/components/ExModal';
+import topModalMixin from '@/mixins/topModal';
+import ProductDefault from '@/components/default/product';
+import ExchangeBanner from './components/ExchangeBanner';
+import bannerJump from '@/mixins/bannerJump';
+import Bottom from '@/components/bottom';
+export default class Exchange extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分互换',
+    enablePullDownRefresh: true,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    ProItem,
+    ListBottom,
+    ExchangeItem,
+    exModal,
+    ProductDefault,
+    ExchangeBanner,
+    Bottom
+  }
+  data = {
+    salesActive: false,
+    modalHidden: true,
+    selectType: '',
+    type: ['全部', '换出积分', '换入积分'],
+    inputValue: '',
+    inPointName: '',
+    outPointName: '',
+    name: '',
+    types: '',
+    selectItem: ''
+  };
+  mixins = [proPage, topModalMixin, bannerJump];
+  onLoad(options) {
+    this.proList();
+    this.getBanner(4);
+  }
+  onShow() {
+    this.hidden = true;
+    this.createAnimation();
+  }
+   // 下拉刷新
+  onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    this.proList(1);
+    this.getBanner(4);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList();
+    }
+  }
+  methods = {
+    cancels() {
+      this.inputValue = '';
+    },
+    // banner跳转
+    bannerRouteJump (item) {
+      this.bannerCallback(item);
+    },
+    bindKeyInput(e) {
+      this.inputValue = e.detail.value;
+      this.$apply();
+    },
+    // 确认
+    confirm() {
+      this.name = '';
+      if ((this.selectType === 1 || this.selectType === 2) && this.inputValue === '') {
+        tips.error('请输入要搜索的内容');
+        return false;
+      }
+      if (this.selectType === '') {
+        tips.error('请选择搜索范围');
+        return false;
+      }
+      this.selectType === 1 ? this.outPointName = this.inputValue : this.outPointName = '';
+      this.selectType === 2 ? this.inPointName = this.inputValue : this.inPointName = '';
+      if (this.selectType === 0 && this.inputValue !== '') {
+        this.name = this.inputValue;
+      }
+      this.$apply();
+      this.closeModalSon();
+      this.proList(1);
+    },
+    selectClick() {
+      this.openModalSon(526);
+    },
+    selectTap(value) {
+      this.selectType = value;
+    },
+    // 交换
+    exchange(item) {
+      this.modalHidden = false;
+      this.selectItem = item;
+      this.$apply();
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    },
+    async modalConfirm() {
+      let query = {
+        id: this.selectItem.id
+      };
+      wepy.reLaunch({
+        url: '/pages/Exchange/succ?query=' + JSON.stringify(query)
+      });
+      this.modalHidden = true;
+    }
+  }
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+    }
+    let query = {
+      page: this.page,
+      inPointName: this.inPointName,
+      outPointName: this.outPointName
+    };
+    if (this.name !== '') {
+      query.name = this.name;
+      query.type = 1;
+    }
+    let resp = await api.getWaitExchangeList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+    wx.stopPullDownRefresh();
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/topModal';
+.exchange {
+  .nav {
+    width: 690rpx;
+    margin: 0 auto;
+    margin-top: 32rpx;
+    .image {
+      width: 330rpx;
+      height: 172rpx;
+    }
+  }
+  .wrap {
+    .title {
+      height: 102rpx;
+      width: 180rpx;
+      margin-top: 32rpx;
+    }
+  }
+  // 顶部弹框样式
+  .select {
+    color: #fff;
+    padding: 30rpx;
+    .head {
+      display: flex;
+      flex-wrap: nowrap;
+      margin: 30rpx 0 0 0rpx;
+      .left {
+        position: relative;
+        .input {
+          width: 614rpx;
+          height: 64rpx;
+          background: rgba(71, 73, 105, 1);
+          border-radius: 36rpx;
+          padding-left: 90rpx;
+          box-sizing: border-box;
+          color: #fff !important;
+        }
+        .search_icon {
+          position: absolute;
+          width: 36rpx;
+          height: 36rpx;
+          margin: 14rpx 0 0 30rpx;
+          .image {
+            width: 100%;
+            height: 100%;
+          }
+        }
+      }
+      .cancel {
+        font-size: 28rpx;
+        color: #fff;
+        line-height: 64rpx;
+        margin-left: 20rpx;
+      }
+    }
+    .tip {
+      margin-top: 60rpx;
+    }
+    .bottom {
+      margin-top: 30rpx;
+    }
+  }
+}
+</style>

@@ -1,0 +1,158 @@
+/**
+ * Created by eda on 2019/11/18.
+ */
+// 单行溢出省略
+.ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行溢出省略
+.multi-ellipsis(@num) {
+  overflow: hidden;
+  word-break:break-all;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @num;
+}
+
+// 清除浮动
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+// 图片自适应
+.fit-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  -moz-background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+// 2倍图 3倍图切换
+.bg-image(@url) {
+  background-image: url("@{url}@2x.png");
+  @media (-webkit-min-device-pixel-ratio: 3), (min-device-pixel-ratio: 3) {
+    background-image: url("@{url}@3x.png")
+  }
+}
+// 灰色隔层
+.strip {
+  width:750rpx;
+  height:20rpx;
+  background:rgba(246,246,246,1);
+}
+// 图片
+.image {
+  width:100%;
+  height: 100%;
+}
+// 按钮样式
+.btnCss {
+  width:140rpx;
+  height:54rpx;
+  background: url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/btnBgi.png")no-repeat center;
+  background-size: cover;
+  text-align:center;
+  line-height: 54rpx;
+  color:#fff;
+  font-size:24rpx;
+}
+// 底部弹出模态框样式
+.model {
+  .over_model {
+    position: fixed;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    width: 100%;
+    height: 100%;
+    top: 0;
+  }
+  .panle_model {
+    position: fixed;
+    height: 0rpx;
+    width: 100%;
+    z-index: 1002;
+    background: #fff;
+    bottom: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 60rpx;
+    border-radius:30rpx 30rpx 0rpx 0rpx;
+    .model_content {
+      .model_head {
+        .close_icon {
+          width:30rpx;
+          height: 30rpx;
+        }
+      }
+    }
+    .model_bottom {
+      width:590rpx;
+      height:100rpx;
+      background:rgba(36,37,55,1);
+      box-shadow:0rpx 6rpx 16rpx 0rpx rgba(0,1,27,0.3);
+      border-radius:50rpx;
+      text-align: center;
+      line-height: 100rpx;
+      font-size:36rpx;
+      font-weight:600;
+      color:rgba(255,255,255,1);
+      position: fixed;
+      bottom:40rpx;
+      left:75rpx;
+    }
+  }
+  .hidden {
+    display: none;
+  }
+}
+.flex-between {
+  display: flex;
+  flex-wrap:nowrap;
+  justify-content: space-between;
+}
+// 按钮通用样式
+.commonbtn (@h){
+  width:590rpx;
+  height:100rpx;
+  background:rgba(36,37,55,1);
+  box-shadow:0px 6rpx 16rpx 0rpx rgba(0,1,27,0.3);
+  border-radius:50rpx;
+  text-align: center;
+  line-height: 100rpx;
+  margin: 0 auto;
+  font-size:36rpx;
+  font-weight:600;
+  color:rgba(255,255,255,1);
+  margin-top: @h;
+}
+.noBtn {
+  width:220rpx;
+  height:60rpx;
+  background:rgba(36,37,55,1);
+  border-radius:10rpx;
+  line-height: 60rpx;
+  text-align: center;
+  color:rgba(255,255,255,1);
+  margin:0 auto;
+}
+.bottom-view {
+  height: 160rpx;
+  width:750rpx;
+}
+.iosBottom {
+  height: 10rpx;
+  width:750rpx;
+}

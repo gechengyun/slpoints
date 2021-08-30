@@ -1,0 +1,258 @@
+<template>
+  <view
+    class="proItem"
+    @tap="proDetail('{{item.prizeId}}')"
+  >
+    <image
+      wx:if="{{item.status === '-1'}}"
+      src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E4%B8%AD%E5%A5%96%E5%95%A6%402x.png"
+      class="winIcon"
+    />
+    <view class="left">
+      <image
+        class="image pro_img"
+        src="{{item.prizePic}}"
+      />
+      <view class="issue">期号：{{item.periodNum}}</view>
+    </view>
+    <view class="right">
+      <view class="pro_name">{{item.prizeName}}</view>
+      <view
+        class="winning"
+        wx:if="{{item.status === '3' && flag === '1'}}"
+      >
+        <view class="item">幸运用户：{{item.prizeRecords[0].userName }}</view>
+        <view class="item">夺宝号码：{{item.prizeRecords[0].treasureCode }}</view>
+        <view class="time">开奖时间：{{item.lotteryTime}}</view>
+      </view>
+      <view wx:else>
+        <view
+          class="scrollsGrey"
+          wx:if="{{item.status === '4'}}"
+        >
+          <view
+            class="wrap"
+            style="width:{{item.lotteryProgress}}%"
+          >
+            <view class="circle" />
+          </view>
+        </view>
+        <view
+          class="scrolls"
+          wx:else
+        >
+          <view class="content">
+            <view
+              class="progress"
+              style="width:{{item.status === '-1' || item.status === '3' ? '100' : item.lotteryProgress}}%"
+            >
+              <view class="progressBg" />
+              <image
+                src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E6%A4%AD%E5%9C%86%E5%BD%A201%402x.png"
+                class="circle"
+              />
+            </view>
+          </view>
+        </view>
+        <view class="currentPer {{item.status === '4'?'greyCurrentPer':''}}">
+          当前参与度：{{item.status === '-1' || item.status === '3' ? '100' : item.lotteryProgress}}%
+          <text
+            class="status"
+            wx:if="{{item.status === '-1'}}"
+          >已开奖</text>
+          <text
+            class="status"
+            wx:else
+          >{{statusList[item.status]}}</text>
+        </view>
+        <view
+          class="text"
+          wx:if="{{item.status === '1'}}"
+        >
+          <view class="btnCss">立即夺宝</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class proList extends wepy.component {
+  onShow() {
+    console.log(this.proList);
+  }
+  props = {
+    item: {},
+    flag: String
+  }
+  data = {
+    statusList: ['未开始', '进行中', '待开奖', '已开奖', '未完成']
+  }
+  methods = {
+    proDetail(id) {
+      wx.navigateTo({
+        url: '/pages/PointsTreasure/detail?id=' + id
+      });
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.proItem {
+  position: relative;
+  width: 690rpx;
+  height: 242rpx;
+  background: rgba(71, 73, 105, 1);
+  box-shadow: 0px 10px 20px 0px rgba(6, 7, 32, 0.4);
+  border-radius: 10px;
+  margin: 0 auto;
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-wrap: nowrap;
+  .winIcon {
+    width: 96rpx;
+    height: 44rpx;
+    position: absolute;
+    left: -10rpx;
+    top: 10rpx;
+  }
+  .left {
+    width: 176rpx;
+    height: 176rpx;
+    background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/proBgi.png')
+      no-repeat center;
+    background-size: cover;
+    background-position: center 0;
+    margin: 12rpx 0rpx 0 16rpx;
+    .pro_img {
+      width: 160rpx;
+      height: 160rpx;
+      border-radius: 20rpx;
+      margin: 8rpx;
+    }
+    .issue {
+      width: 160rpx;
+      text-align: center;
+      font-size: 18rpx;
+      color: rgba(174, 192, 255, 1);
+      .ellipsis();
+    }
+  }
+  .right {
+    margin: 20rpx;
+    width: 470rpx;
+    .pro_name {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: @white-color;
+      line-height: 44rpx;
+      .ellipsis();
+    }
+    .winning {
+      color: rgba(255, 255, 255, 1);
+      font-weight: 400;
+      .item {
+        line-height: 40rpx;
+        margin-top: 10rpx;
+        font-size: 28rpx;
+      }
+      .time {
+        font-size: 20rpx;
+        margin-top: 10rpx;
+      }
+    }
+    .scrolls {
+      width: 384rpx;
+      height: 16rpx;
+      border-radius: 19rpx;
+      margin-top: 22rpx;
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(
+        315deg,
+        rgba(67, 84, 255, 1),
+        rgba(91, 253, 255, 1)
+      );
+      padding: 2rpx;
+      .content {
+        width: 100%;
+        height: 100%;
+        background: #474969;
+        border-radius: 19rpx;
+        .progress {
+          position: relative;
+          height: 16rpx;
+          border-radius: 19rpx;
+          background: linear-gradient(
+            135deg,
+            rgba(91, 253, 255, 1) 0%,
+            rgba(67, 84, 255, 1) 100%
+          );
+          .circle {
+            position: absolute;
+            right: -8rpx;
+            width: 20rpx;
+            height: 20rpx;
+            border-radius: 16rpx;
+            top: -2rpx;
+            // top: -8rpx;
+          }
+          .progressBg {
+            width: 100%;
+            position: absolute;
+            top: 0rpx;
+            height: 20rpx;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAADklEQVQIW2NgQAXGZHAAGioAza6+Hk0AAAAASUVORK5CYII=);
+          }
+        }
+      }
+    }
+    .scrollsGrey {
+      width: 384rpx;
+      height: 14rpx;
+      border-radius: 19rpx;
+      border: 2rpx solid rgba(153, 153, 153, 1);
+      margin-top: 22rpx;
+      position: relative;
+      .wrap {
+        height: 14rpx;
+        border-radius: 19rpx;
+        position: absolute;
+        top: 0;
+        background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/lineBgi.png')
+          no-repeat;
+        background-size: cover;
+      }
+      .circle {
+        position: absolute;
+        right: -8rpx;
+        width: 18rpx;
+        height: 18rpx;
+        border-radius: 18rpx;
+        background: rgba(216, 216, 216, 1);
+        box-shadow: 0px 0px 6rpx 0px rgba(0, 11, 44, 0.5);
+        border: 2rpx solid rgba(153, 153, 153, 1);
+        top: -3rpx;
+      }
+    }
+    .currentPer {
+      font-size: 24rpx;
+      color: rgba(60, 196, 235, 1);
+      margin-top: 20rpx;
+      .status {
+        color: #fff;
+        padding-left: 20rpx;
+      }
+    }
+    .greyCurrentPer {
+      color: rgba(153, 153, 153, 1);
+    }
+    .text {
+      display: flex;
+      flex-direction: row-reverse;
+    }
+  }
+}
+</style>

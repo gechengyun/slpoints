@@ -1,0 +1,30 @@
+<template lang="wxml">
+   <view class="tips">
+      不同企业积分可自由组合、叠加使用（积分商城内所有商品均支持）
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Tips extends wepy.component {
+  data = {}
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.tips {
+  width: 694rpx;
+  height: 122rpx;
+  margin: 0 auto;
+  background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/mallTips.png')
+    no-repeat center;
+  background-size: cover;
+  margin-top: 40rpx;
+  margin-bottom: 50rpx;
+  font-size: 22rpx;
+  color: @white-color;
+  padding: 35rpx 20rpx 16rpx 166rpx;
+  box-sizing: border-box;
+  line-height: 32rpx;
+}
+</style>

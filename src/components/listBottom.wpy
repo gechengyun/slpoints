@@ -1,0 +1,40 @@
+<template>
+  <view>
+    <view class="bottom-line" style="margin-top: {{marginTop}}rpx;position:{{position}}">
+      <image class="image" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/solan%403x.png" />
+    </view>
+    <view class="iosBottom" style="height: {{height}}rpx"/>
+  </view>  
+</template>
+<script>
+import wepy from 'wepy';
+export default class BottomLine extends wepy.component {
+  props={
+    marginTop: {
+      type: String
+    },
+    position: {
+      type: String
+    },
+    height: {
+      type: String,
+      default: '20'
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.bottom-line {
+  width:750rpx;
+  bottom:0rpx;
+  margin-bottom: 60rpx;
+  .image {
+    width: 428rpx;
+    height: 20rpx;
+    margin-left:161rpx;
+  }
+}
+.iosBottom {
+  width:750rpx;
+}
+</style>

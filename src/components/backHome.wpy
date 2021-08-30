@@ -1,0 +1,45 @@
+<template>
+  <view class="backHome">
+    <navigator url="/pages/Home/index" open-type="reLaunch" hover-class="other-navigator-hover">
+    <image
+      wx:if="{{flag === 0}}"
+      class="image"
+      style="bottom:{{bottom}}rpx"
+      src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/%E9%A6%96%E9%A1%B5-%E7%99%BD%403x.png"
+    />
+     <image
+      wx:else
+      class="image"
+      style="bottom:{{bottom}}rpx"
+      src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/dark.png"
+    />
+    </navigator>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class BackHome extends wepy.component {
+  props = {
+    bottom: {
+      type: String,
+      default: 50
+    },
+    flag: {
+      type: String,
+      default: 0
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.backHome {
+  .image {
+    position: fixed;
+    right: 20rpx;
+    bottom: 50rpx;
+    width: 160rpx;
+    height: 160rpx;
+    z-index: 999;
+  }
+}
+</style>

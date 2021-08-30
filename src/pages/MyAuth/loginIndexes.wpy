@@ -1,0 +1,178 @@
+<template lang="wxml">
+  <view class="myAuth">
+    <view class="header">
+      <view class="header-image">
+        <image class="image" src="{{avatarUrl}}" />
+      </view>
+      <view class="userName">
+        {{userName}}
+      </view>
+      <view class="welcome">
+        欢迎回来
+      </view>
+    </view>
+    <view class="bottom-btn-top">
+      <button plain='true' open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber" >微信一键登录</button>
+    </view>
+    <view class="bottom-btn">
+      <navigator class="bottom-phone" url="/pages/MyAuth/signIn" hover-class="none"  >手机号登录</navigator>
+    </view>
+    <view class="info-box">
+        <view class="info-top">
+            授权登陆即表示您已阅读并同意
+        </view>
+       <navigator class="info-footer" url="/pages/MyAuth/serviceProtocol" hover-class="none" >《首选兑积分通兑平台用户协议》</navigator>
+    </view>
+    <ListBottom position="absolute"/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import tip from '@/utils/tip';
+import api from '@/api/api';
+import ListBottom from '@/components/listBottom';
+import { AUTH_TOKEN, UUID, USER_SPECICAL_INFO, USER_INFO } from '@/utils/constant';
+export default class myAuth extends wepy.page {
+  config = {
+    navigationBarTitleText: '登录',
+    enablePullDownRefresh: true
+  };
+  onLoad () {
+    this.avatarUrl = wepy.getStorageSync(USER_INFO).avatarUrl;
+    this.userName = wepy.getStorageSync(USER_INFO).nickName;
+  }
+  components = {
+    ListBottom
+  }
+  data = {
+    avatarUrl: '',
+    userName: ''
+  }
+  methods = {
+    getPhoneNumber({ detail }) {
+      if (detail.errMsg === 'getPhoneNumber:ok') {
+        this.registerUserPhone(detail);
+      }
+    }
+  };
+  async registerUserPhone(detail) {
+    let query = {
+      authToken: wepy.getStorageSync(AUTH_TOKEN),
+      encryptedData: detail.encryptedData,
+      iv: detail.iv
+    };
+    let res = await api.wechatAddPhone({ method: 'POST', query: query });
+    if (res.data.httpCode === '200') {
+      wepy.setStorageSync(UUID, res.data.data.token);
+      wepy.setStorageSync(USER_SPECICAL_INFO, res.data.data.member);
+      if (this.$parent.globalData.loginFlag === 1) {
+        this.$parent.globalData.loginFlag = 2;
+      }
+      wx.navigateBack({
+        delta: 2
+      });
+      // wepy.switchTab({ url: '/pages/Me/index' });
+    } else {
+      tip.error(res.data.msg);
+    }
+  }
+  async getUserInfo() {
+    let { code } = await wepy.login();
+    let resCode = await api.getAuthToken({ code: code });
+    if (resCode.data.httpCode === '200') {
+      wepy.setStorageSync(UUID, resCode.data.data.token);
+      wx.navigateBack();
+    } else {
+      tip.error(resCode.data.msg);
+    }
+  }
+}
+</script>
+
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.myAuth {
+  width: 750rpx;
+  .header {
+    text-align: center;
+    .header-image {
+      width: 210rpx;
+      height: 210rpx;
+      border-radius: 50%;
+      margin: 0rpx auto;
+      margin-top: 100rpx;
+      margin-bottom: 20rpx;
+      .image {
+        border-radius: 50%;
+      }
+    }
+    .userName {
+      font-size:40rpx;
+      font-weight:600
+    }
+    .welcome {
+      font-size:32rpx;
+      margin-top: 30rpx;
+    }
+  }
+  .auth-title {
+    text-align: center;
+    view:first-child {
+      font-size: 28rpx;
+      line-height: 60rpx;
+    }
+    view:last-child {
+      color: #666666;
+      font-size: 24rpx;
+      line-height: 32rpx;
+    }
+  }
+  .bottom-btn-top {
+    width: 590rpx;
+    margin: 0 auto;
+    margin-top: 200rpx;
+    button {
+      width: 590rpx;
+      height: 80rpx;
+      text-align: center;
+      line-height: 80rpx;
+      padding: 0;
+      border: none;
+      font-size: 32rpx;
+      color: #ffffff;
+      background:rgba(36,37,55,1);
+      border-radius:10rpx;
+    }
+  }
+  .bottom-btn {
+    width: 590rpx;
+    margin: 0 auto;
+    margin-top: 60rpx;
+    .bottom-phone {
+      width: 590rpx;
+      height: 80rpx;
+      text-align: center;
+      line-height: 80rpx;
+      padding: 0;
+      font-size: 32rpx;
+      color: #242537;
+      border-radius:10rpx;
+      border:2rpx solid rgba(36,37,55,1);
+    }
+  }
+  .info-box {
+    font-size: 24rpx;
+    margin-top: 30rpx;
+    .info-top {
+      text-align: center;
+      color: #333333;
+    }
+    .info-footer {
+      text-align: center;
+      font-size: 24rpx;
+      color: #4354FF;
+    }
+  }
+}
+</style>

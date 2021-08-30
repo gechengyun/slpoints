@@ -1,0 +1,126 @@
+<template lang="wxml">
+  <view class="make-points">
+    <view class="title">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title5-1.png" class="image" />
+    </view>
+    <view class="warp">
+      <view class="word">
+        首选兑平台本身不产生任何积分，您可以将与首选兑合作的企业的积分导入到首选兑中使用。详情请在积分钱包中查看。
+      </view>
+      <view class="image1">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/5-1.png" class="image" />
+      </view>
+    </view>
+    <view class="title1">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title5-2.png" class="image" />
+    </view>
+    <view class="warp warp1">
+      <view class="image2">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/5-2.png" class="image" />
+      </view>
+    </view>
+    <view class="title2">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title5-3.png" class="image" />
+    </view>
+    <view class="image3">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/5-3.png" class="image" />
+    </view>
+    <navigator class="btn" target="miniProgram" open-type="navigate" app-id="wx7e95c2dccb6ec762" path="" extra-data="">
+      去赚积分
+    </navigator>
+    <ListBottom marinTop="50" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+export default class HelpMakePoints extends wepy.page {
+  config = {
+    navigationBarTitleText: '赚积分',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    ListBottom
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.make-points {
+  .title {
+    width:614rpx;
+    height:114rpx;
+    margin: 0 auto;
+    margin-top:40rpx;
+  }
+  .warp {
+    width:690rpx;
+    height: 652rpx;
+    background:rgba(255,255,255,1);
+    border-radius:20rpx;
+    border:2rpx solid rgba(151,151,151,1);
+    margin: 0 auto;
+    padding: 40rpx 30rpx;
+    box-sizing: border-box;
+    .word {
+      font-size:32rpx;
+      color:rgba(51,51,51,1);
+      line-height:44rpx;
+      margin-bottom: 40rpx;
+    }
+    .image1 {
+      width:630rpx;
+      height:364rpx;
+    }
+  }
+  .title1 {
+    width:388rpx;
+    height:112rpx;
+    margin: 0 auto;
+    margin-top: 100rpx;
+  }
+  .warp1 {
+    height:1320rpx;
+    padding: 0;
+    .image2 {
+      width:690rpx;
+      height:1320rpx;
+      margin: 0 auto;
+    }
+  }
+  .title2 {
+    width:612rpx;
+    height:114rpx;
+    margin: 0 auto;
+    margin-top: 100rpx;
+  }
+  .image3 {
+    width:694rpx;
+    height:706rpx;
+    margin: 0 auto;
+  }
+  .btn {
+    width:590rpx;
+    height:100rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:50rpx;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 100rpx;
+    font-size:36rpx;
+    font-weight:600;
+    color:rgba(255,255,255,1);
+    margin-top:120rpx;
+    margin-bottom:50rpx;
+  }
+}
+</style>

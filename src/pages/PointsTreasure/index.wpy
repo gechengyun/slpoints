@@ -1,0 +1,127 @@
+<template lang="wxml">
+  <view class="treasure">
+    <BackHome bottom="20" flag="1"/>
+    <TreasureBanner  :banner.sync="banner" @jump.user="bannerRouteJump" />
+    <view class="nav flex-between">
+      <navigator url="/pages/TreasureList/historyTreasure" hover-class="none">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/history.png" class="image" />
+      </navigator>
+      <navigator url="/pages/TreasureList/myTreasure" hover-class="none">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/my.png" class="image" />
+      </navigator>
+    </view>
+    <view class="wrap">
+      <view class="title">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E7%A7%AF%E5%88%86%E5%A4%BA%E5%AE%9D01%402x.png" class="image"/>
+      </view>
+      <view class="contain">
+        <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+          <ProItem :item='item' @exchange.user="exchange"/>
+        </repeat>
+      </view>
+      <ProductDefault
+      wx:if="{{ finished && products.length === 0}}"
+      src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/treasure.png'
+      tips='暂无夺宝活动 敬请期待'
+      marginTop='300'
+      marginBottom='400'
+      imgWidth='260'
+      imgHeight='228'
+      />
+      <ListBottom marginTop="58"/>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/api';
+import ProItem from './components/proItem';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import topModalMixin from '@/mixins/topModal';
+import ProductDefault from '@/components/default/product';
+import bannerJump from '@/mixins/bannerJump';
+import TreasureBanner from './components/TreasureBanner';
+import BackHome from '@/components/backHome';
+export default class Mall extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分夺宝',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    ProItem,
+    ListBottom,
+    ProductDefault,
+    TreasureBanner,
+    BackHome
+  }
+  data = {
+  };
+  mixins = [proPage, topModalMixin, bannerJump];
+  onLoad() {
+    this.proList();
+    this.getBanner(2);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList();
+    }
+  }
+  methods = {
+    // banner跳转
+    bannerRouteJump (item) {
+      this.bannerCallback(item);
+    },
+    bindchange(e) {
+      this.current = e.detail.current;
+    }
+  }
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page
+    };
+    let resp = await api.getTreasurePeriodList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.treasure {
+  .nav {
+    width: 690rpx;
+    margin: 0 auto;
+    margin-top: 32rpx;
+    .image {
+      width: 330rpx;
+      height: 172rpx;
+    }
+  }
+  .wrap {
+    .title {
+      height: 96rpx;
+      width: 180rpx;
+      margin-top: 32rpx;
+    }
+  }
+}
+</style>

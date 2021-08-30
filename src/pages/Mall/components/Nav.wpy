@@ -1,0 +1,78 @@
+<template lang="wxml">
+  <view class="nav">
+    <view class="nav-item" @tap="jump(1)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%85%A8%E5%9F%8E%E7%BE%8E%E9%A3%9F.png" />
+      <view class="title">全城美食</view>
+    </view>
+    <view class="nav-item" @tap="jump(2)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%80%BC%E5%BE%97%E4%BD%8F.png" />
+      <view class="title">值得住</view>
+    </view>
+    <view class="nav-item" @tap="jump(3)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%87%BA%E8%A1%8C.png" />
+      <view class="title">出行</view>
+    </view>
+    <view class="nav-item" @tap="jump(4)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E6%97%85%E6%B8%B8.png" />
+      <view class="title">旅游</view>
+    </view>
+  </view>
+  <view class="nav">
+    <view class="nav-item" @tap="jump(5)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%A4%A7%E7%89%8C%E5%A5%BD%E8%B4%A7.png" />
+      <view class="title">大牌好货</view>
+    </view>
+    <view class="nav-item" @tap="jump(6)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E7%8E%A9%E4%B9%90.png" />
+      <view class="title">玩乐</view>
+    </view>
+    <view class="nav-item" @tap="jump(7)">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E6%9C%8D%E5%8A%A1.png" />
+      <view class="title">服务</view>
+    </view>
+    <view class="nav-item">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E6%95%AC%E8%AF%B7%E6%9C%9F%E5%BE%85.png" />
+      <view class="title">敬请期待</view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Nav extends wepy.component {
+  data = {}
+  methods={
+    jump(v) {
+      // url: '/pages/Mall/proList?value=' + e.detail.value
+      wx.navigateTo({
+        url: '/pages/Mall/proList?bizClass=' + v
+      });
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.nav {
+  width: 650rpx;
+  height: 150rpx;
+  margin: 0 auto;
+  margin-top: 40rpx;
+  z-index: 900;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  .nav-item {
+    width: 112rpx;
+    .img {
+      width: 112rpx;
+      height: 118rpx;
+    }
+    .title {
+      text-align: center;
+      font-size: 24rpx;
+      color: @white-color;
+    }
+  }
+}
+</style>

@@ -1,0 +1,327 @@
+<template lang="wxml">
+  <view class="treasureDetail">
+    <BackHome bottom="100"/>
+    <Detail :prizeDetail.sync="prizeDetail" @btnTap.user="modelTap" @openModelStore.user="openModelStore"/>
+    <!-- 确认取消模态框 -->
+    <exModal
+      title="平台可用积分不足"
+      hidden="{{modalHidden}}"
+      height="510"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      confirmText="去导入"
+      closeText="取消"
+    >
+      <view class="modal-content">
+        您的可用积分不足，请先导入积分
+      </view>
+    </exModal>
+    <!-- 底部弹出模态框1 -->
+    <view class="model" catchtouchmove='true'>
+      <view class="over_model {{hidden?'hidden':''}} "></view>
+      <view
+        class="panle_model {{hidden?'hidden':''}}"
+        animation="{{animationData}}"
+      >
+        <view class="model_content">
+          <view class="model_head">
+            <image
+              src="/images/close.png"
+              class="close_icon"
+              @tap="closeModel"
+            />
+          </view>
+          <view class="model_wrap">
+            <view class="name">{{prizeDetail.prizeName}}</view>
+            <view class="item">
+              <view class="title">积分价格/夺宝码：</view><view class="num">{{ prizeDetail.partinPoint }}积分/夺宝码</view>
+            </view>
+            <view class="item">
+              <view class="title">兑换数量：</view>
+              <view class="num_icon">
+                <view
+                  class="points_icon"
+                  @tap='buttonTap(0)'
+                >
+                <image src="/images/added.png" class="image"/>
+                </view>
+                <view class="point_input">
+                  <input
+                    focus="true"
+                    type="number"
+                    value="{{inputValue}}"
+                    bindinput="bindKeyInput"
+                    bindblur="bindblurPay"
+                  />
+                </view>
+                 <view
+                  class="points_icon"
+                  @tap="buttonTap(1)"
+                ><image src="/images/add.png" class="image"/></view>
+              </view>
+            </view>
+            <view class="item">
+              <view class="title">应付总积分：</view>
+              <view class="totalPoints">
+                <view class="text">{{prizeDetail.partinPoint * inputValue}}</view>
+                <view>积分</view>
+                </view>
+            </view>
+          </view>
+        </view>
+        <view class="model_bottom" @tap="pay()">
+          确认兑换
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import WepyHTML from 'wepy-html';
+import api from '@/api/api';
+import Detail from './components/detail';
+import exModal from '@/components/ExModal';
+import modelMixin from '@/mixins/model';
+import tips from '@/utils/tip';
+import BackHome from '@/components/backHome';
+export default class TreasureDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '夺宝商品详情'
+  };
+  components = {
+    'wepy-html': WepyHTML,
+    Detail,
+    exModal,
+    BackHome
+  }
+  mixins = [modelMixin];
+  data = {
+    prizeId: '',
+    prizeDetail: '',
+    deductNumTotal: 0,
+    modalHidden: true,
+    inputValue: 1,
+    totalPoints: 0
+  };
+  onLoad(options) {
+    this.prizeId = options.id;
+    let htmlCode = '<p>1232132r3r41</p>';
+    this.$invoke('wepy-html', 'updateContent', htmlCode, {
+      imgInsteadOfVideo: true
+    });
+    this.$apply();
+  }
+  onShow() {
+    this.hidden = true;
+    this.createAnimation();
+    this.PrizeDetail(this.prizeId);
+  }
+  // 验证
+  submitCheck() {
+    if (this.deductNumTotal < this.prizeDetail.partinPoint * this.inputValue) { // 当前积分钱包不够积分
+      tips.error('您的积分不足以兑换当前数量商品，请导入积分！');
+      return false;
+    }
+    if (this.prizeDetail.partinTimesEveryone * 1 - this.prizeDetail.myPartInCodeList.length < this.inputValue * 1) { // 当前积分钱包不够积分
+      tips.error('当前夺宝码剩余数量不足！');
+      return false;
+    };
+    if (this.prizeDetail.partinTimesEveryone * 1 < this.inputValue * 1) { // 当前积分钱包不够积分
+      tips.error('您已达到最大可兑换量！');
+      return false;
+    };
+    return true;
+  }
+  methods = {
+    // 立即兑换
+    modelTap() {
+      this.queryDeductNum();
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    },
+    // 输入框
+    bindKeyInput(e) {
+      this.inputValue = e.detail.value * 1;
+      this.totalPoints = this.prizeDetail.partinPoint * this.inputValue;
+      this.$apply();
+    },
+    // 去导入
+    modalConfirm() {
+      this.modalHidden = true;
+      wx.navigateTo({
+        url: '/pages/PointsWallet/index'
+      });
+    },
+    // 失去焦点
+    async bindblurPay() {
+      let query = {
+        productCount: this.inputValue,
+        productId: this.prizeId
+      };
+      let resp = await api.checkTreasure({ method: 'POST', query });
+      if (resp.data.httpCode !== '200') {
+        tips.error(resp.data.msg);
+      }
+    },
+    async buttonTap(flag) {
+      if (flag === '1') {
+        let query = {
+          productCount: this.inputValue + 1,
+          productId: this.prizeId
+        };
+        let resp = await api.checkTreasure({ method: 'POST', query });
+        if (resp.data.httpCode === '200') {
+          this.inputValue++;
+        } else {
+          tips.error(resp.data.msg);
+        }
+      } else {
+        if (this.inputValue <= 1) {
+          return false;
+        }
+        this.inputValue--;
+      }
+      this.totalPoints = this.prizeDetail.partinPoint * this.inputValue;
+      this.$apply();
+    },
+    // 去支付
+    async pay() {
+      if (this.inputValue === 0 || this.inputValue === '') {
+        tips.error('请输入数量');
+        return false;
+      }
+      let query = {
+        productCount: this.inputValue,
+        productId: this.prizeId
+      };
+      let resp = await api.checkTreasure({ method: 'POST', query });
+      if (resp.data.httpCode === '200') {
+        let query = {
+          prizeId: this.prizeId,
+          picture: this.prizeDetail.prizePic,
+          prizeName: this.prizeDetail.prizeName,
+          partinPoint: this.prizeDetail.partinPoint,
+          inputValue: this.inputValue,
+          totalPoints: this.prizeDetail.partinPoint * this.inputValue
+        };
+        wx.navigateTo({
+          url: `/pages/PointsTreasure/exchangeOrder?query=${JSON.stringify(query)}`
+        });
+      } else {
+        tips.error(resp.data.msg);
+      }
+    }
+  }
+  // 奖品详情
+  async PrizeDetail(id) {
+    let resp = await api.getTreasurePeriodDatil({
+      prizeId: id
+    });
+    if (resp.data.httpCode === '200') {
+      let prizeDetail = resp.data.data;
+      if (prizeDetail.prizeRecords && prizeDetail.prizeRecords[0]) {
+        prizeDetail.prizeRecords[0].userMobile = prizeDetail.prizeRecords[0].userMobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+      }
+      if (prizeDetail.prizeRecords && prizeDetail.prizeRecords[0]) {
+        prizeDetail.prizeRecords[0].userName = prizeDetail.prizeRecords[0].userName.substr(0, 1) + '***';
+      }
+      this.prizeDetail = prizeDetail;
+      this.$apply();
+    }
+  }
+  // 获取当前用户积分
+  async queryDeductNum() {
+    this.deductNumTotal = 0;
+    let res = await api.queryDeductNum({method: 'POST'});
+    if (res.data.httpCode === '200') {
+      let pointsList = res.data.data;
+      pointsList.map((item) => {
+        if (item.deductNum !== '0') {
+          this.deductNumTotal += item.deductNum * 1;
+        }
+      });
+      if (this.deductNumTotal < this.prizeDetail.partinPoint) { // 当前积分钱包不够积分单价
+        this.modalHidden = false;
+      } else {
+        this.openModel(704);
+      }
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang='less'>
+.wepyhtml-tag-img {
+  width:100%!important
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.treasureDetail {
+  // 模态框内容样式
+  .model_wrap {
+    margin-top: 30rpx;
+    .name {
+      font-size:32rpx;
+      font-weight:600;
+      color:rgba(51,51,51,1);
+      line-height:48rpx;
+    }
+    .item {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      height: 108rpx;
+      line-height: 108rpx;
+      border-bottom:1px solid #D8D8D8;
+      .title {
+        font-size:24rpx;
+        color:rgba(153,153,153,1);
+      }
+      .num {
+        font-size:28rpx;
+        color:rgba(102,102,102,1);
+      }
+      .num_icon {
+        display: flex;
+        flex-wrap: nowrap;
+        .points_icon {
+          width: 48rpx;
+          height: 48rpx;
+          margin-top: 22rpx;
+          text-align: center;
+          line-height: 48rpx;
+        }
+        .point_input {
+          width: 62rpx;
+          margin-top: 22rpx;
+          text-align: center;
+          padding: 0 8rpx 0 8rpx;
+          input {
+            height: 48rpx !important;
+            font-size:40rpx;
+            font-weight:bold;
+            color:rgba(0,0,0,1);
+          }
+        }
+      }
+      .totalPoints {
+        display: flex;
+        flex-wrap: nowrap;
+        color:rgba(51,51,51,1);
+        .text {
+          font-size:64rpx!important;
+          font-weight:bold;
+        }
+      }
+    }
+    :nth-child(4) {
+      border-bottom:1px solid #fff;
+    }
+  }
+}
+</style>

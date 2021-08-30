@@ -1,0 +1,49 @@
+<template lang="wxml">
+  <view class="nav flex-between">
+    <navigator url="/pages/PointsWallet/index" hover-class="none"  class="nav-item">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/walletIcon.png" />
+      <view class="title">积分钱包</view>
+    </navigator>
+    <navigator hover-class="none" url="/pages/CardRoll/index" class="nav-item">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/cardIcon.png" />
+      <view class="title">我的卡券</view>
+    </navigator>
+    <navigator url="/pages/Order/index" hover-class="none"  class="nav-item">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/exchangeIcon.png" />
+      <view class="title">我的兑换</view>
+    </navigator>
+    <navigator url="/pages/PointsTreasure/index" hover-class="none"  class="nav-item">
+      <image class="img" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/pointIcon.png" />
+      <view class="title">积分夺宝</view>
+    </navigator>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Nav extends wepy.component {
+  data = {}
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.nav {
+  width: 650rpx;
+  height: 150rpx;
+  margin: 0 auto;
+  margin-top: 40rpx;
+  z-index: 900;
+  .nav-item {
+    width: 112rpx;
+    .img {
+      width: 112rpx;
+      height: 118rpx;
+    }
+    .title {
+      text-align: center;
+      font-size: 24rpx;
+      color: @white-color;
+    }
+  }
+}
+</style>

@@ -1,0 +1,439 @@
+<template lang="wxml">
+  <view class="PointsImport">
+    <BackHome bottom="184"/>
+    <view class="header flex-between">
+      <view class="icon left">
+        <view>
+          <image src="{{entDetail.logo}}" class="image" />
+        </view>
+        <view class="entName">{{entDetail.entName}}</view>
+      </view>
+      <view class="arrow">
+        <image class="image" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E7%AE%AD%E5%A4%B4%20copy%403x.png" />
+      </view>
+      <view class="icon right">
+        <view>
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E5%88%86%E7%BB%84%2010%403x.png" class="image" />
+        </view>
+        <view>积分钱包</view>
+      </view>
+    </view>
+    <view class="content">
+      <navigator url="/pages/PointsWallet/selectEnt?flag=1" hover-class="none"  class="ent flex-between">
+        <view class="ent-left">{{entDetail.entName}}</view>
+        <view class="ent-right"> <image src="/images/up.png" class="image"/></view>
+      </navigator>
+      <view class="phone flex-between">
+        <input class="phone-left" 
+        type="number"  
+        placeholder-style="color:rgba(153,153,153,1);font-size:24rpx;font-weight:400;" 
+        placeholder="请输入手机号" value="{{userMobile}}" 
+        bindinput="bindPhoneInput" 
+        focus="{{!phoneDisable}}" 
+        disabled="{{phoneDisable}}"/>
+        <view class="phone-right" @tap.stop="exchangePhone">切换</view>
+      </view>
+      <view class="smsCode flex-between" wx:if="{{!phoneDisable}}">
+        <input class="smsCode-left" 
+          type="text" 
+          value="{{smsCode}}" 
+          bindinput="bindSmsCodeInput"
+          placeholder="请输入验证码"
+          placeholder-style="color:rgba(153,153,153,1);font-size:24rpx;font-weight:400;"/>
+        <view style="border:1px solid #fff">
+          <button disabled="{{btnDis}}" class="smsCode-right" @tap.stop="getCode">{{codeMsg}}</button>
+        </view>
+      </view>
+      <form bindsubmit="import" report-submit="true">
+        <view class="points">
+          <input
+            focus="true"
+            type="number"
+            value="{{inputValue}}"
+            bindinput="bindKeyInput"
+            placeholder="请输入要导入的积分"
+            placeholder-style="color:rgba(153,153,153,1);font-size:24rpx!important;font-weight:400;"
+          />
+        </view>
+        <view class="tips">*您当前拥有{{entDetail.pointName}}：{{erpPoint}}</view>
+        <button formType="submit" class="btn btn_common" wx:if="{{checked}}">
+          确认导入
+        </button>
+        <view class="btn btn_common btnFault" wx:else>
+          确认导入
+        </view>
+      </form>  
+      <view class="instructions">
+        <view class="checkbox" @tap="check">
+          <view class="a" wx:if="{{checked}}">
+          </view>
+        </view>
+        <view class="right">
+          <view class="title" @tap="check">
+            已阅读并授权积分导入
+          </view>
+          <view class="desc">
+            1. 您已授权同意将原企业积分系统内所持有积分按1:1 比例。
+          </view>
+          <view class="desc">
+            2. 导入到首选兑小程序积分钱包里的积分，仅可在本 小程序内进行交换或消耗，暂无法导回到原企业积 分系统。
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="bottom" />
+    <ListBottom marginTop="58"/>
+    <!-- 确认取消模态框 -->
+    <exModal
+      title="导入确认"
+      hidden="{{modalHidden}}"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      confirmText="继续导入"
+      closeText="再想想"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/3.png"
+    >
+      <view class="modal-content">
+        导入积分钱包内的积分不可回退到企业系统，请您确认。
+      </view>
+    </exModal>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+// import util from '@/utils/util';
+import tips from '@/utils/tip';
+import api1 from '@/api/api';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+import exModal from '@/components/ExModal';
+import { USER_SPECICAL_INFO } from '@/utils/constant';
+export default class PointsWallet extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分导入',
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537',
+    disableScroll: false
+  }// POST /app/userPointBalance/queryErpPointsByMobile
+  data = {
+    entList: [],
+    inputValue: '',
+    checked: false, // √
+    modalHidden: true,
+    entDetail: '',
+    userMobile: '',
+    phoneDisable: true,
+    smsCode: '',
+    codeMsg: '获取验证码',
+    btnDis: false,
+    formId: '',
+    erpPoint: 0
+  }
+  components={
+    ListBottom,
+    exModal,
+    BackHome
+  }
+  onLoad(option) {
+    let check = wepy.getStorageSync('check');
+    let userInfo = wepy.getStorageSync(USER_SPECICAL_INFO);
+    this.checked = check;
+    this.entDetail = JSON.parse(option.query);
+    this.$parent.globalData.entDetail = this.entDetail;
+    if (this.entDetail.userMobile) {
+      this.userMobile = this.entDetail.userMobile;
+    } else {
+      this.userMobile = userInfo.phone;
+    }
+    if (this.userMobile !== userInfo.phone) {
+      this.phoneDisable = false;
+      this.$apply();
+    }
+    this.queryErpPointsByMobile();
+  }
+  show(option) {
+  }
+  async queryErpPointsByMobile() {
+    let query = {
+      userMobile: this.userMobile,
+      pointCode: this.entDetail.pointCode
+    };
+    let resp = await api.queryErpPointsByMobile({ method: 'POST', query });
+    if (resp.data.httpCode === '200') {
+      if (resp.data.data.balance) {
+        this.erpPoint = resp.data.data.balance * 1;
+      } else {
+        this.erpPoint = 0;
+      }
+      this.$apply();
+    }
+  }
+   // 验证手机号
+  validatePhone() {
+    if (this.userMobile === '') {
+      tips.error('请填写手机号');
+      return false;
+    }
+    if (!(/^1[3456789]\d{9}$/.test(this.userMobile))) {
+      tips.error('请输入正确的手机号');
+      return false;
+    }
+    return true;
+  }
+  onUnload() {
+    this.codeMsg = '获取验证码';
+    clearInterval(this.interval);
+  }
+  methods = {
+    // 切换手机号
+    exchangePhone() {
+      this.userMobile = '';
+      this.phoneDisable = false;
+      this.$apply();
+    },
+    bindSmsCodeInput(e) {
+      this.smsCode = e.detail.value;
+    },
+    bindPhoneInput(e) {
+      this.userMobile = e.detail.value;
+    },
+    bindKeyInput(e) {
+      this.inputValue = e.detail.value;
+    },
+    allSearch() {
+      tips.searchLoad('快马加鞭查询中，请耐心等待哦~', () => {
+        wx.hideToast();
+      });
+    },
+    check() {
+      this.checked ? this.checked = false : this.checked = true;
+    },
+    async import(e) {
+      this.formId = e.detail.formId;
+      // 手机验证码
+      if (this.phoneDisable === false) {
+        let query = {
+          userMobile: this.userMobile,
+          smsCode: this.smsCode
+        };
+        let resp = await api.checkPhone({method: 'POST', query});
+        if (resp.data.httpCode !== '200') {
+          return false;
+        }
+      }
+      if (this.inputValue === '' || this.inputValue === '0') {
+        tips.error('请填写导入积分数量');
+        return false;
+      }
+      if (this.checked === false) {
+        tips.error('请同意授权导入');
+        return false;
+      }
+      this.modalHidden = false;
+      this.$apply();
+    },
+    // 验证手机号
+    async getCode() {
+      if (!this.validatePhone()) {
+        return false;
+      }
+      this.queryErpPointsByMobile();
+      this.codeMsg = 60;
+      this.btnDis = true;
+      this.interval = setInterval(() => {
+        this.codeMsg--;
+        if (this.codeMsg <= 0) {
+          this.btnDis = false;
+          this.codeMsg = '获取验证码';
+          clearInterval(this.interval);
+        }
+        this.$apply();
+      }, 1000);
+      let res = await api1.sendRandCode({method: 'POST', query: {msgType: 4, phone: this.userMobile}});
+      if (res.data.httpCode === '200') {
+        tips.success('发送成功!');
+        this.$apply();
+      } else {
+        tips.error(res.data.msg);
+      }
+    },
+     // 去导入
+    modalConfirm() {
+      this.modalHidden = true;
+      let user = wepy.getStorageSync(USER_SPECICAL_INFO);
+      let phone = '';
+      let smsCode = '';
+      if (this.userMobile !== user.phone) {
+        phone = this.userMobile;
+        smsCode = this.smsCode;
+      }
+      let query = {
+        tranNum: this.inputValue,
+        phone,
+        pointCode: this.entDetail.pointCode,
+        smsCode,
+        formId: this.formId
+      };
+      wepy.setStorageSync('check', this.checked);
+      wx.reLaunch({
+        url: `/pages/PointsWallet/importSucc?query=${JSON.stringify(query)}`
+      });
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    }
+  }
+}
+</script>
+<style lang="less">
+button::after{
+  border: 0px solid #fff!important
+}
+button {
+  padding: 0!important;
+  font-weight: 100;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.PointsImport {
+  position: relative;
+  .header {
+    width:750rpx;
+    height:426rpx;
+    background: #242537;
+    color:#fff;
+    .icon {
+      text-align:center;
+      margin-top: 70rpx;
+      .image {
+        width:165rpx;
+        height:165rpx;
+        border-radius: 165rpx;
+      }
+    }
+    .left {
+      margin-left:90rpx;
+      .entName {
+        width: 165rpx;
+        .ellipsis()
+      }
+    }
+    .right {
+      margin-right:90rpx;
+    }
+    .arrow {
+      margin-top: 114rpx;
+      .image {
+        width:115rpx;
+        height:52rpx;
+
+      }
+    }
+  }
+  .content {
+    position: absolute;
+    top:340rpx;
+    left: 40rpx;
+    width:670rpx;
+    background:rgba(255,255,255,1);
+    box-shadow:0px 10rpx 30rpx 0rpx rgba(130,136,202,0.2);
+    border-radius:20rpx;
+    padding: 0 40rpx;
+    box-sizing: border-box;
+    .ent,.phone,.points,.smsCode{
+      height: 124rpx;
+      line-height: 124rpx;
+      font-size:32rpx;
+      font-weight:600;
+      border-bottom:1px solid #F6F6F6;
+      .ent-right {
+        width:29rpx;
+        height:16rpx;
+      }
+      .phone-left,.smsCode-left {
+        font-size:32rpx;
+        font-weight:400;
+        color:rgba(51,51,51,1);
+      }
+      .phone-right {
+        font-size:24rpx;
+        font-weight:400;
+        color:rgba(153,153,153,1);
+      }
+      .smsCode-right {
+        width:148rpx;
+        height:46rpx;
+        background:rgba(255,255,255,1);
+        border-radius:4rpx!important;
+        border:1px solid rgba(67,84,255,1)!important;
+        text-align: center;
+        line-height: 46rpx;
+        font-size:24rpx;
+        color:rgba(67,84,255,1);
+        margin-top: 34rpx;
+      }
+      input {
+        height: 124rpx;
+        // font-size:40rpx;
+        font-weight:bold;
+        color:rgba(51,51,51,1);
+      }
+    }
+    .tips {
+      font-size:24rpx;
+      color:rgba(51,51,51,1);
+      margin-top: 18rpx;
+    }
+    .btn {
+      .commonbtn(60rpx)
+    }
+    .instructions {
+      display: flex;
+      flex-wrap: nowrap;
+      margin-top: 30rpx;
+      margin-bottom: 60rpx;
+      .checkbox {
+        width:28rpx;
+        height:28rpx;
+        border-radius:4rpx;
+        border:1px solid rgba(216,216,216,1);
+        margin-top: 5rpx;
+        padding-left: 5rpx;
+        padding-right: 5rpx;
+        line-height: 28rpx;
+        box-sizing: border-box;
+        .a{ display: inline-block; width: 10rpx;height:4rpx; background: #000;line-height: 0;font-size:0;vertical-align: middle;-webkit-transform: rotate(45deg);}
+        .a:after{content:'/';display:block;width: 20rpx;height:4rpx; background: #000;-webkit-transform: rotate(-90deg) translateY(-50%) translateX(50%);}
+
+      }
+      .right {
+        flex: 1;
+        margin-left: 10rpx;
+        .title {
+          color:rgba(51,51,51,1);
+          margin-bottom: 20rpx;
+        }
+        .desc {
+          font-size: 24rpx;
+          font-weight: 600rpx;
+          color:rgba(102,102,102,1);
+        }
+      }
+
+    }
+  }
+  .bottom {
+    height:856rpx;
+  }
+  .btnFault {
+    background:rgba(153,153,153,1)!important;
+    color:rgba(255,255,255,1)!important;
+  }
+}
+
+</style>

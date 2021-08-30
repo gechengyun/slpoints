@@ -1,0 +1,522 @@
+<template lang="wxml">
+  <view class="PointsWallet">
+    <BackHome bottom="0"/>
+    <view class="header">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E4%B8%8D%E8%A7%84%E5%88%99%E5%9B%BE%E5%BD%A2%E6%B3%A2%E6%B5%AA%E7%BA%BF%E6%9D%A114%402x.png" class="bgi"/>
+      <image @tap="tapClickRule" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E7%A7%AF%E5%88%86%E8%A7%84%E5%88%99%402x.png" class="image" />
+    </view>
+    <view class="top flex-between">
+      <navigator
+        url="/pages/PointsWallet/selectEnt"
+        hover-class="none"
+        class="import flex-between"
+      >
+        <image
+          class="image"
+          src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E6%89%8B%E5%8A%A8%E5%AF%BC%E5%85%A5%403x.png"
+        />
+        <view class="text">手动导入</view>
+      </navigator>
+      <view
+        class="import flex-between"
+        @tap="allSearch"
+      >
+        <image
+          class="image"
+          src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/poinsWallet/%E5%85%A8%E5%B1%80%E6%9F%A5%E8%AF%A2%403x.png"
+        />
+        <view class="text">全局查询</view>
+      </view>
+    </view>
+    <view class="wrap">
+      <scroll-view
+        class="detail-box"
+        scroll-y="{{true}}"
+        wx:if="{{erpList.length > 0}}"
+      >
+        <repeat
+          for="{{erpList}}"
+          wx:key="index"
+          index="index"
+          item="item"
+        >
+          <view class="item">
+            <view class="item-top">
+              <view class="enprise-img">
+                <image
+                  class="image"
+                  src="{{item.pointLogo}}"
+                />
+              </view>
+              <view class="desc">
+                <view class="name flex-between">
+                  <view class="word">{{item.entName}}</view>
+                  <view class="btn" @tap="searchQuery('{{item}}','{{index}}')">{{item.searchText}}</view>
+                </view>
+                <view class="pointName">
+                  {{item.pointName}}
+                </view>
+                <view class="border"></view>
+                <view class="usePoints" @tap="tapClickDetail('{{item.id}}')">
+                  <view class="title">平台可用积分:</view>
+                  <view class="icon">
+                    <image
+                      src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"
+                      class="image"
+                    />
+                  </view>
+                  <view class="jf">积分 </view>
+                  <view class="num">{{item.platBalance-item.freezeNum}}</view>
+                </view>
+              </view>
+            </view>
+            <view class="line" wx:if="{{item.erpList.length>0}}">
+              <image
+                src="/images/line.png"
+                class="image"
+              />
+            </view>
+            <repeat for="{{item.erpList}}" wx:key="index" index="index" item="items" >
+              <view class="item-bottom">
+                <view>企业会员账户：{{items.userMobiles}}</view>
+                <view>可导入积分：{{items.balance}}积分</view>
+                <view class="flex-between">
+                  <view>信息更新时间：{{items.updateTime}}</view>
+                  <view class="btn" @tap="jumpRoute({{item}},{{items}})">去导入</view>
+                </view>
+              </view>
+            </repeat>
+          </view>
+        </repeat>
+        <view class="loading" wx:if="{{loading}}">
+          <image src="/images/loading.png" class="image"/>
+          正在帮您查询请您耐心等待！
+        </view>
+        <!-- iphone6 Plus底部挡住了 -->
+        <view style="height:50rpx"/>
+      </scroll-view>
+      <view wx:if="{{finished && erpList.length===0}}">
+        <view class="default">
+          <view class="default-img">
+            <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E5%B9%B3%E5%8F%B0%E5%8F%AF%E7%94%A8%E7%A7%AF%E5%88%86%402x.png" class="image" />
+          </view>
+          <view class="text">您暂无平台可用积分与可导入积分</view>
+        </view>
+        <navigator url="/pages/PointsWallet/changePhone/index" hover-class="none"  class="btns commonbtn">更换手机号查询</navigator>
+      </view>
+    </view>
+    <ListBottom position='absolute'/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+import util from '@/utils/util';
+import tips from '@/utils/tip';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+export default class PointsWallet extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分钱包',
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537',
+    disableScroll: true
+  };
+  data = {
+    erpList: [],
+    erpListBak: [],
+    flag: '',
+    finished: false,
+    query: '',
+    UUID: '',
+    loading: false
+  }
+  components = {
+    ListBottom,
+    BackHome
+  }
+  onShow() {
+    this.erpList = [];
+    this.finished = false;
+    this.query = '';
+    if (this.$parent.globalData.loginFlag === 1) {
+      this.UUID = wx.getStorageSync('UUID');
+      let query = this.$parent.globalData.pointAllCheck;
+      this.query = query;
+      wx.connectSocket({
+        url: `${api.websocket}/${this.UUID}`
+      });
+      // 连接成功
+      wx.onSocketOpen((res) => {
+        this.queryAllErpPoints();
+        console.log('打开成功');
+      });
+      // 接收数据
+      wx.onSocketMessage((data) => {
+        let resp = JSON.parse(data.data);
+        this.loading = true;
+        if (resp[0].currentNum === 1) {
+          this.loading = true;
+        }
+        let list = this.$parent.globalData.erpListBak;
+        if (list.length === 0 || resp[0].totalNum === 0) {
+          this.finished = true;
+          this.$apply();
+        }
+        if (resp[0].totalNum === resp[0].currentNum) {
+          this.loading = false;
+        }
+        list.forEach(value => {
+          if (resp[0] && (resp[0].pointCode === value.pointCode)) {
+            resp.forEach(item => {
+              item.updateTime = util.getCurrentTime(item.updateTime);
+              item.userMobiles = item.userMobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+            });
+            value.erpList = resp;
+            value.searchText = '查询';
+            this.erpList.push(value);
+            this.$apply();
+          }
+        });
+        if (resp[0].totalNum === resp[0].currentNum) {
+          wx.closeSocket();
+        }
+        wx.hideToast();
+      });
+      // 连接失败
+      wx.onSocketError(function (e) {
+        console.log(e);
+      });
+    } else {
+      this.postQueryAllPoints();
+    }
+  }
+  onHide() {
+    this.$parent.globalData.loginFlag = '';
+    wx.closeSocket();
+  }
+  onUnload() {
+    this.$parent.globalData.loginFlag = '';
+    wx.closeSocket();
+  }
+  async queryAllErpPoints() {
+    let resp = await api.queryAllErpPoints({ method: 'POST', query: this.query, socket: 1 });
+    if (resp.data.httpCode !== '200') {
+      this.finished = true;
+      this.$apply();
+    } else {
+      tips.searchLoad('快马加鞭查询中，请耐心等待哦~');
+    }
+  }
+  async queryErpPoints(pointCode, index) {
+    let resp = await api.queryErpPoints({ method: 'POST', pointCode });
+    if (resp.data.httpCode === '200') {
+      resp.data.data.platBalance = util.numToFixedFloor(resp.data.data.platBalance);
+      resp.data.data.freezeNum = util.numToFixedFloor(resp.data.data.freezeNum);
+      this.erpList[index] = resp.data.data;
+      let erpList = this.erpList[index].erpList;
+      let erp = [];
+      erpList.forEach(item => {
+        let userMobiles = item.userMobile;
+        item.userMobiles = userMobiles.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+        erp.push(item);
+      });
+      this.erpList[index].erpList = erp;
+      this.$apply();
+    }
+    this.erpList[index].searchText = '查询';
+    this.$apply();
+  }
+  async postQueryAllPoints() {
+    this.erpListBak = [];
+    let res = await api.queryAllPoints({ method: 'POST' });
+    if (res.data.httpCode === '200') {
+      this.finished = true;
+      if (res.data.data.length > 0) {
+        let list = res.data.data;
+        if (this.flag !== '1') {
+          list.forEach(value => {
+            value.platBalance = util.numToFixedFloor(value.platBalance);
+            value.freezeNum = util.numToFixedFloor(value.freezeNum);
+            if (parseInt(value.platBalance) !== 0 || value.erpList.length !== 0) {
+              let erpList = value.erpList;
+              let erp = [];
+              erpList.forEach(item => {
+                let userMobiles = item.userMobile;
+                item.userMobiles = userMobiles.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+                erp.push(item);
+              });
+              value.erpList = erp;
+              value.searchText = '查询';
+              this.erpList.push(value);
+            }
+            value.searchText = '查询';
+            this.erpListBak.push(value);
+          });
+          this.$parent.globalData.erpListBak = this.erpListBak;
+          this.$apply();
+        } else {
+          this.queryAllErpPoints();
+        }
+      }
+      this.$apply();
+    }
+  }
+  methods = {
+    async jumpRoute(item, items) {
+      let resp = await api.checkRechargePoint({ method: 'POST', pointCode: item.pointCode });
+      if (resp.data.httpCode === '200') {
+        let query = {
+          entId: item.id,
+          logo: item.pointLogo,
+          pointName: item.pointName,
+          pointCode: item.pointCode,
+          entName: item.entName,
+          platBalance: item.platBalance,
+          userMobile: items.userMobile
+        };
+        wx.navigateTo({
+          url: `/pages/PointsWallet/pointsImport?query=${JSON.stringify(query)}`
+        });
+      }
+    },
+    searchQuery(item, index) {
+      this.erpList[index].searchText = '查询中';
+      this.$apply();
+      this.queryErpPoints(item.pointCode, index);
+    },
+    allSearch() {
+      wx.navigateTo({
+        url: '/pages/PointsWallet/changePhone/index'
+      });
+    },
+    tapClick() {
+      wx.navigateTo({
+        url: '/pages/PointsWallet/pointsImport'
+      });
+    },
+    // 积分明细
+    tapClickList() {
+      wx.navigateTo({
+        url: '/pages/PointsWallet/pointDetailList'
+      });
+    },
+    // 积分规则
+    tapClickRule() {
+      wx.navigateTo({
+        url: '/pages/PointsWallet/pointsRule'
+      });
+    },
+    tapClickDetail(id) {
+      wx.navigateTo({
+        url: `/pages/PointsWallet/pointsDetail?id=${id}`
+      });
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.PointsWallet {
+  .header {
+    width: 750rpx;
+    height: 216rpx;
+    background: #242537;
+    position: relative;
+    .bgi {
+      width: 750rpx;
+      height: 216rpx;
+      position: absolute;
+    }
+    .image {
+      width: 124rpx;
+      height: 50rpx;
+      float: right;
+      margin-top: 20rpx;
+      position: absolute;
+      right: 0
+    }
+  }
+  .top {
+    position: absolute;
+    top: 96rpx;
+    left: 40rpx;
+    width: 670rpx;
+    height: 180rpx;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0px 10rpx 30rpx 0rpx rgba(130, 136, 202, 0.2);
+    border-radius: 20rpx;
+    .import {
+      width: 250rpx;
+      height: 120rpx;
+      margin-top: 34rpx;
+      margin-left: 50rpx;
+      margin-right: 50rpx;
+      line-height: 120rpx;
+      color: rgba(51, 51, 51, 1);
+      .image {
+        width: 113rpx;
+        height: 113rpx;
+      }
+    }
+  }
+  .wrap {
+    margin-top: 100rpx;
+    .default {
+      .default-img {
+        width: 260rpx;
+        height: 198rpx;
+        margin: 0 auto;
+        margin-top: 240rpx;
+      }
+      .text {
+        text-align: center;
+        color: rgba(153, 153, 153, 1);
+        margin-top: 32rpx;
+      }
+    }
+    .btns {
+      .commonbtn(100rpx);
+    }
+    .detail-box {
+      height: calc(100vh - 220px);
+      .item {
+        width: 690rpx;
+        margin: 0 auto;
+        margin-bottom: 30rpx;
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0px 10rpx 30rpx 0rpx rgba(130, 136, 202, 0.2);
+        position: relative;
+        .item-top {
+          display: flex;
+          flex-wrap: nowrap;
+          padding: 20rpx 0rpx 0 30rpx;
+          box-sizing: border-box;
+          .enprise-img {
+            width: 80rpx;
+            height: 80rpx;
+            .image {
+              border-radius: 40rpx;
+            }
+          }
+          .desc {
+            flex: 1;
+            margin-right: 30rpx;
+            margin-left: 20rpx;
+            .name {
+              .word {
+                flex: 1;
+                width: 300rpx;
+                .ellipsis();
+                font-weight: 600;
+                color: rgba(51, 51, 51, 1);
+              }
+              .btn {
+                width: 80rpx;
+                height: 40rpx;
+                background: rgba(67, 84, 255, 1);
+                border-radius: 20rpx;
+                text-align: center;
+                line-height: 40rpx;
+                font-size: 20rpx;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 1);
+              }
+            }
+            .pointName {
+              width: 500rpx;
+              font-size: 24rpx;
+              font-weight: 400;
+              color: rgba(102, 102, 102, 1);
+              line-height: 34rpx;
+              .ellipsis();
+              margin-top: 10rpx;
+            }
+            .border {
+              width: 530rpx;
+              height: 20rpx;
+              border-bottom: 1px solid #f6f6f6;
+            }
+            .usePoints {
+              line-height: 86rpx;
+              .title {
+                float: left;
+                font-size: 20rpx;
+                color: rgba(102, 102, 102, 1);
+              }
+              .num {
+                float: right;
+                font-size: 32rpx;
+                font-weight: bold;
+                color: rgba(51, 51, 51, 1);
+              }
+              .jf {
+                float: right;
+                font-size: 20rpx;
+                color: rgba(51, 51, 51, 1);
+                margin-left: 10rpx;
+              }
+              .icon {
+                float: right;
+                width: 18rpx;
+                height: 16rpx;
+                margin-left: 10rpx;
+              }
+            }
+          }
+        }
+        .line {
+          position: absolute;
+          top: 200rpx;
+          height: 38rpx;
+          width: 100%;
+        }
+        .item-bottom {
+          width: 630rpx;
+          height: 165rpx;
+          margin: 0 auto;
+          border-bottom: 1px solid #f6f6f6;
+          margin-top: 30rpx;
+          font-size: 24rpx;
+          color: rgba(51, 51, 51, 1);
+          view {
+            margin-bottom: 20rpx;
+          }
+          :nth-child(3) {
+            height: 40rpx;
+            // display: flex;
+            // flex-wrap:nowrap;
+            // justify-content: space-between;
+            font-size: 20rpx;
+            color: rgba(153, 153, 153, 1);
+            line-height: 40rpx;
+            .btn {
+              width: 100rpx;
+              height: 40rpx;
+              border-radius: 4rpx;
+              border: 1px solid rgba(67, 84, 255, 1);
+              text-align: center;
+              line-height: 40rpx;
+              font-size: 20rpx;
+              color: rgba(67, 84, 255, 1);
+              cursor: pointer;
+            }
+          }
+        }
+      }
+    }
+  }
+  .loading {
+    color:#666;
+    text-align: center;
+    margin-top: 64rpx;
+    .image {
+      width:48rpx;
+      height: 45rpx
+    }
+  }
+}
+</style>

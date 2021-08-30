@@ -1,0 +1,199 @@
+<template>
+  <view class="signIn">
+    <view class="content">
+      <form bindsubmit="formSubmit">
+        <view class="logo">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/logo.png" class="image" />
+        </view>
+        <view class="input-box flex-between">
+          <view class="title">手机号码</view>
+          <input
+            name="phone"
+            type="number"
+            bindinput="phoneInput"
+            placeholder="请输入手机号"
+            maxlength="11"
+            focus="true"
+            placeholder-style="color:#B6B6B6;"
+          />
+        </view>
+        <view class="input-box flex-between">
+          <view class="title">验证码</view>
+          <input
+            name="authCode"
+            placeholder-style="color:#B6B6B6;"
+            type="number"
+            placeholder="请输入验证码"
+          />
+          <view>
+            <view class="button noColor" wx:if="{{sendMsgDisabled}}" plain="true">{{time}}秒后获取</view>
+            <view
+              class="button hasColor"
+              @tap="sendCode"
+              wx:else="{{sendMsgDisabled}}"
+              plain="true"
+            >获取验证码</view>
+          </view>
+        </view>
+        <button class="bottom-phone" formType="submit" plain="true">登录</button>
+      </form>
+    </view>
+    <ListBottom position="absolute"/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import tip from '@/utils/tip';
+import api from '@/api/api';
+import ListBottom from '@/components/listBottom';
+import { AUTH_TOKEN, UUID, USER_SPECICAL_INFO } from '@/utils/constant';
+export default class signIn extends wepy.page {
+  config = {
+    navigationBarTitleText: '绑定手机号'
+  };
+  data = {
+    phone: '',
+    sendMsgDisabled: false,
+    time: 60
+  };
+  components = {
+    ListBottom
+  }
+  async sendVerifyCode() {
+    const res = await api.sendRandCode({
+      method: 'POST',
+      query: {
+        msgType: 4,
+        phone: this.phone
+      }
+    });
+    if (res.data.httpCode === '200') {
+      tip.success('发送成功!');
+      this.$apply();
+    } else {
+      tip.error(res.data.msg);
+    }
+  }
+  async registerUser(phone, authCode) {
+    let query = {
+      authToken: wepy.getStorageSync(AUTH_TOKEN),
+      phone: phone,
+      authCode: authCode
+    };
+    let res = await api.addOtherPhone({ method: 'POST', query: query });
+    if (res.data.httpCode === '200') {
+      wepy.setStorageSync(UUID, res.data.data.token);
+      wepy.setStorageSync(USER_SPECICAL_INFO, res.data.data.member);
+      wepy.switchTab({ url: '/pages/Me/index' });
+    } else {
+      tip.error(res.data.msg);
+    }
+    // wepy.navigateBack();
+  }
+  methods = {
+    phoneInput(e) {
+      this.phone = e.detail.value;
+    },
+    sendCode(e) {
+      if (this.phone === '') {
+        tip.error('请输入手机号码');
+        return false;
+      }
+      this.sendVerifyCode();
+      let that = this;
+      that.sendMsgDisabled = true;
+      let interval = setInterval(() => {
+        if (that.time-- <= 0) {
+          that.time = 10;
+          that.sendMsgDisabled = false;
+          clearInterval(interval);
+          that.$apply();
+        }
+        that.$apply();
+      }, 1000);
+    },
+    formSubmit(e) {
+      let phone = e.detail.value.phone;
+      let authCode = e.detail.value.authCode;
+      if (phone === '') {
+        tip.error('请输入手机号码');
+        return false;
+      }
+      if (authCode === '') {
+        tip.error('请输入验证码');
+        return false;
+      }
+      this.registerUser(phone, authCode);
+    }
+  };
+  onLoad() {
+    if (!wepy.getStorageSync(AUTH_TOKEN)) {
+      wepy.redirectTo({url: '/pages/MyAuth/index'});
+    }
+  }
+}
+</script>
+
+<style lang="less">
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.signIn {
+  width: 750rpx;
+  box-sizing: border-box;
+  .content {
+    width: 610rpx;
+    margin: 0 auto;
+    .logo {
+      width:210rpx;
+      height: 210rpx;
+      margin: 0 auto;
+      margin-top: 100rpx;
+      margin-bottom: 50rpx;
+    }
+    .input-box {
+      width: 610rpx;
+      height: 146rpx;
+      border-bottom: 1px solid #f6f6f6;
+      box-sizing: border-box;
+      .title {
+        font-size:32rpx;
+        font-weight:600;
+        color:rgba(51,51,51,1);
+        line-height: 146rpx;
+      }
+      input {
+        flex:1;
+        height: 146rpx;
+        line-height: 146rpx;
+        margin-left: 30rpx;
+      }
+      .button {
+        width:148rpx;
+        height:46rpx;
+        background:rgba(255,255,255,1);
+        border-radius:4rpx;
+        border:1px solid rgba(67,84,255,1);
+        font-size:24rpx;
+        color:rgba(67,84,255,1);
+        line-height:34px;
+        text-align: center;
+        line-height: 46rpx;
+        margin-top: 50rpx;
+      }
+    }
+    .bottom-phone {
+      width: 590rpx;
+      height: 80rpx;
+      margin-top: 200rpx;
+      text-align: center;
+      line-height: 80rpx;
+      padding: 0;
+      border: none;
+      font-size: 32rpx;
+      color: #ffffff;
+      background:rgba(36,37,55,1);
+      border-radius:10rpx;
+    }
+  }
+}
+</style>

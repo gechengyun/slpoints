@@ -1,0 +1,359 @@
+<template lang="wxml">
+  <view class="proDetail">
+    <BackHome bottom="50"/>
+    <PDetail :proDetail.sync="proDetail" @btnTap.user="modelTap" @openModelStore.user="openModelStore"/>
+    <!-- 确认取消模态框 -->
+    <exModal
+      title="积分不足"
+      hidden="{{modalHidden}}"
+      height="510"
+      flag="1"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      @cancelIcon.user="cancelIcon"
+      confirmText="导入"
+      closeText="交换"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/0.png"
+    >
+      <view class="modal-content">
+        您的积分不足 是否立即获取？
+      </view>
+    </exModal>
+    <!-- 确认取消模态框 -->
+    <!-- 底部弹出模态框2 -->
+    <view class="model" catchtouchmove='true'>
+      <view class="over_model {{hiddenStore?'hidden':''}} "></view>
+      <view
+        class="panle_model {{hiddenStore?'hidden':''}}"
+        animation="{{animationDataStore}}"
+      >
+        <view class="model_content">
+          <view class="model_head">
+            <image
+              src="/images/close.png"
+              class="close_icon"
+              @tap="closeModelStore"
+            />
+          </view>
+          <view class="model_wrap store">
+            <view class="title flex-between">
+              <view class="left">门店列表</view>
+              <view class="right">共{{proDetail.stores.length}}个门店可用</view>
+            </view>
+            <scroll-view class="ul" scroll-y="true">
+              <repeat for="{{proDetail.stores}}" wx:key="item.id" index="index" item="item">
+                <view class="li">
+                  <view class="storeName">{{item.storeName}}</view>
+                  <view class="address flex-between">
+                    <view class="left">
+                      <image class="image" src="/images/proDetail/addIcon.png" />
+                    </view>
+                    <view class="middle">
+                    {{item.address}}
+                    </view>
+                    <view class="right" @tap="telCallModel('{{item.telephone}}')">
+                      <image class="image" src="/images/proDetail/tellIcon.png" />
+                    </view>
+                  </view>
+                  <view class="time flex-between">
+                    <view class="left">
+                      <image class="image" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E8%90%A5%E4%B8%9A%E6%97%B6%E9%97%B4%403x.png" />
+                    </view>
+                    <view class="right">
+                    {{item.businessCycle}}
+                    </view>
+                  </view>
+                </view>
+              </repeat>
+            </scroll-view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import WepyHTML from 'wepy-html';
+import api from '@/api/EdaApi';
+import PDetail from './components/ProDetail';
+import exModal from '@/components/ExModal';
+import modelMixin from '@/mixins/model';
+import util from '@/utils/util';
+import BackHome from '@/components/backHome';
+export default class ProDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '商品详情'
+  };
+  components = {
+    'wepy-html': WepyHTML,
+    PDetail,
+    exModal,
+    BackHome
+  }
+  mixins = [modelMixin];
+  data = {
+    productId: '',
+    proDetail: '',
+    modalHidden: true,
+    totalPoints: 0,
+    inputValue: 1,
+    currentPoints: '',
+    deductNumTotal: 0,
+    posLng: '',
+    posLat: ''
+  };
+  onLoad(options) {
+    wx.getLocation({
+      type: 'wgs84',
+      success: (res) => {
+        this.posLng = res.longitude;
+        this.posLat = res.latitude;
+      },
+      complete: () => {
+        this.ProDetail(options.id);
+      }
+    });
+    this.productId = options.id;
+    let htmlCode = '<p>1232132r3r41</p>';
+    this.$invoke('wepy-html', 'updateContent', htmlCode, {
+      imgInsteadOfVideo: true
+    });
+    this.$apply();
+  }
+  onShow() {
+    this.hidden = true;
+    this.createAnimation();
+  }
+  methods = {
+    telCallModel(tel) {
+      if (tel !== '') {
+        wx.makePhoneCall({
+          phoneNumber: tel // 仅为示例，并非真实的电话号码
+        });
+      }
+    },
+    // 输入框
+    bindKeyInput(e) {
+      this.inputValue = e.detail.value * 1;
+      if (this.inputValue === 0) {
+        this.inputValue = 1;
+        return 1;
+      };
+      this.totalPoints = this.proDetail.salePoints * this.inputValue;
+      this.$apply();
+    },
+    // 立即兑换
+    modelTap() {
+      this.getUserPoints();
+    },
+    // 确认关闭模态框
+    cancelIcon() {
+      this.modalHidden = true;
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+      wx.switchTab({
+        url: '/pages/Exchange/index'
+      });
+    },
+    // 去导入
+    modalConfirm() {
+      this.modalHidden = true;
+      wx.navigateTo({
+        url: '/pages/PointsWallet/index'
+      });
+    },
+    openModelStore() {
+      this.openModelStore(704);
+    }
+  }
+  // 商品详情
+  async ProDetail(id) {
+    this.enterprise = [];
+    let res = await api.getProDetail({ id: id, posLng: this.posLng, posLat: this.posLat });
+    if (res.data.httpCode === '200') {
+      this.proDetail = res.data.data;
+      if (this.proDetail.useRule !== '') {
+        this.proDetail.useRule = this.proDetail.useRule.split('&hc');
+      } else {
+        this.proDetail.useRule = [];
+      }
+      this.$apply();
+    }
+  }
+  // 获取用户当前积分列表
+  async getUserPoints() {
+    let res = await api.getUserPoints({ method: 'POST', pointCode: this.proDetail.pointCode });
+    if (res.data.httpCode === '200') {
+      let data = res.data.data;
+      this.deductNumTotal = util.numToFixed(data.platBalance);
+      if (parseInt(this.deductNumTotal) < this.proDetail.salePoints) { // 当前积分钱包不够积分单价
+        this.modalHidden = false;
+      } else {
+        let picture = '';
+        if (this.proDetail.picture[0]) {
+          picture = this.proDetail.picture[0].picture;
+        }
+        let query = {
+          productId: this.proDetail.id,
+          picture,
+          productName: this.proDetail.productName,
+          pointName: this.proDetail.pointName,
+          pointCode: this.proDetail.pointCode,
+          salePoints: this.proDetail.salePoints,
+          totalPoints: this.proDetail.salePoints,
+          deductNumTotal: this.deductNumTotal,
+          stock: this.proDetail.stock
+        };
+        wx.navigateTo({
+          url: `/package_saleProDetail/pages/Detail/exchangeOrder?query=${JSON.stringify(query)}`
+        });
+      }
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang='less'>
+.wepyhtml-tag-img {
+  width:100%!important
+}
+::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+</style>
+<style lang="less" scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.proDetail {
+  // 模态框内容样式
+  .model_wrap {
+    margin-top: 30rpx;
+    .name {
+      font-size:32rpx;
+      font-weight:400;
+      color:rgba(51,51,51,1);
+      line-height:48rpx;
+    }
+    .item {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      height: 108rpx;
+      line-height: 108rpx;
+      border-bottom:1px solid #D8D8D8;
+      .title {
+        font-size:24rpx;
+        color:rgba(153,153,153,1);
+      }
+      .num {
+        font-size:28rpx;
+        color:rgba(102,102,102,1);
+      }
+      .num_icon {
+        display: flex;
+        flex-wrap: nowrap;
+        .points_icon {
+          width: 48rpx;
+          height: 48rpx;
+          border: 2rpx solid rgba(153, 153, 153, 1);
+          border-radius: 48rpx;
+          margin-top: 22rpx;
+          text-align: center;
+          line-height: 48rpx;
+          font-size: 42rpx!important;
+          color:#999;
+          font-weight: 600;
+        }
+        .point_input {
+          width: 62rpx;
+          margin-top: 22rpx;
+          text-align: center;
+          padding: 0 8rpx 0 8rpx;
+          input {
+            height: 48rpx !important;
+            font-size:40rpx;
+            font-weight:bold;
+            color:rgba(0,0,0,1);
+          }
+        }
+      }
+      .totalPoints {
+        display: flex;
+        flex-wrap: nowrap;
+        color:rgba(51,51,51,1);
+        .text {
+          font-size:64rpx!important;
+          font-weight:bold;
+        }
+      }
+    }
+    :nth-child(4) {
+      border-bottom:1px solid #fff;
+    }
+  }
+  //
+  .store {
+    padding: 0!important;
+    .title {
+      .left {
+      font-size:32rpx;
+      font-weight:600
+      }
+      .right {
+        font-size:24rpx;
+        font-weight:400;
+        color:rgba(67,84,255,1);
+      }
+    }
+    .ul {
+      height: 450rpx;
+      .li {
+        margin-top: 40rpx;
+        border-bottom:1px solid rgba(216,216,216,1);;
+        .storeName {
+          width: 100%;
+          font-size:32rpx;
+        }
+        .address {
+          margin-top: 20rpx;
+          .left {
+            width:22rpx;
+            height:26rpx;
+          }
+          .middle {
+            flex: 1;
+            font-size:24rpx;
+            color:rgba(102,102,102,1);
+            margin: 0 10rpx;
+          }
+          .right {
+            width:24rpx;
+            height:24rpx;
+            margin-right: 10rpx;
+          }
+        }
+        .time {
+          margin-top: 10rpx;
+          margin-bottom: 30rpx;
+          .left {
+            width:24rpx;
+            height:24rpx;
+          }
+          .right {
+            flex: 1;
+            margin: 0 10rpx;
+            font-size:20rpx;
+            color:rgba(153,153,153,1);
+            line-height: 40rpx;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

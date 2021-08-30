@@ -1,0 +1,162 @@
+<template>
+  <view class="points-detail">
+     <BackHome bottom="50"/>
+    <view class="detail-header">
+      <view class="image-box">
+        <image class="image" src="{{detail.pointLogo}}" />
+      </view>
+      <view class="detail-title">
+        <view>{{detail.pointName}}</view>
+        <view>{{detail.entName}}</view>
+        <view>总数：{{detail.platBalance}}积分</view>
+        <view>交换中：{{detail.freezeNum}}积分</view>
+      </view>
+    </view>
+    <view class="strip"/>
+    <view class="title-box">
+      <view>积分数量</view>
+      <view>最终使用日期</view>
+    </view>
+    <view class="detail-content">
+      <view wx:if="{{list.length === 0}}" class="noData">暂无数据</view>
+      <repeat for="{{list}}" wx:key="item.id" index="index" item="item"  wx:if="{{list.length > 0}}">
+        <view class="detail-lists">
+          <view class="lists-left">
+              <view>{{item.balance}}</view>
+          </view>
+          <view class="lists-right">{{item.expireTime === '3000-01-01'? '永久有效':item.expireTime}}</view>
+        </view>
+      </repeat>
+    </view>
+    <view class="btn btn_common" @tap="tapClick()">前往导入</view>
+    <!-- 底线 -->
+    <ListBottom position='absolute'/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+import util from '@/utils/util';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+export default class PointsDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分详情'
+  };
+  data = {
+    detail: ' ',
+    list: []
+  }
+  components = {
+    ListBottom,
+    BackHome
+  }
+  onLoad(option) {
+    this.myPointsDetail(option.id);
+  }
+  async myPointsDetail (id) {
+    let res = await api.myPointsDetail({ method: 'POST', id: id });
+    if (res.data.httpCode === '200') {
+      this.detail = res.data.data;
+      let list = res.data.data.details;
+      list.forEach(value => {
+        value.balance = util.numToFixed(value.balance);
+        this.list.push(value);
+      });
+      this.detail.freezeNum = util.numToFixed(this.detail.freezeNum);
+      this.detail.platBalance = util.numToFixed(this.detail.platBalance);
+      this.$apply();
+    }
+  }
+  methods = {
+    tapClick() {
+      let query = {
+        entId: this.detail.entId,
+        entName: this.detail.entName,
+        logo: this.detail.pointLogo,
+        pointName: this.detail.pointName,
+        pointCode: this.detail.pointCode,
+        platBalance: this.detail.platBalance
+      };
+      wx.navigateTo({
+        url: '/pages/PointsWallet/pointsImport?query=' + JSON.stringify(query)
+      });
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.points-detail {
+  width: 750rpx;
+  .detail-header {
+    display: flex;
+    height: 240rpx;
+    box-sizing: border-box;
+    padding-left: 60rpx;
+    .image-box {
+      width: 200rpx;
+      height: 200rpx;
+    }
+    .detail-title {
+      height: 200rpx;
+      padding-left: 20rpx;
+      font-size: 28rpx;
+      color:rgba(102,102,102,1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      view:first-child {
+        font-size: 32rpx;
+        color: #333333;
+        font-weight:600;
+      }
+    }
+  }
+  .title-box {
+    border-bottom: 1px solid #D8D8D8;
+    display: flex;
+    justify-content: space-between;
+    width: 690rpx;
+    margin: 0 auto;
+    color: #999999;
+    font-size: 32rpx;
+    font-weight:600;
+    color:rgba(51,51,51,1);
+    height: 104rpx;
+    line-height: 104rpx;
+  }
+  .detail-content {
+    width: 690rpx;
+    margin: 0 auto;
+    .noData {
+      text-align: center;
+      margin-top: 20rpx;
+    }
+    .detail-lists {
+      display: flex;
+      justify-content: space-between;
+      height: 98rpx;
+      line-height: 98rpx;
+      box-sizing: border-box;
+      padding-top: 8rpx;
+      .lists-left{
+        view:first-child{
+          font-size:32rpx;
+          font-weight:600;
+          color:rgba(51,51,51,1);
+        }
+      }
+      .lists-right{
+        font-size:28rpx;
+        font-weight:600;
+        color:rgba(102,102,102,1);
+      }
+    }
+  }
+  .btn {
+    .commonbtn(74rpx)
+  }
+}
+</style>

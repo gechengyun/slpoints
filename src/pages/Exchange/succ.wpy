@@ -1,0 +1,136 @@
+<template>
+  <view class="exchangeSucc">
+    <BackHome bottom="30" wx:if="{{status === 2 || status === 1}}"/>
+    <view class="tips">
+      <image
+        src="{{images[status]}}"
+        class="image"
+      />
+    </view>
+    <view class="tipsWord">{{tips[status]}}</view>
+    <view
+      class="tipsSecond"
+      wx:if="{{status === 2}}"
+    >失败原因：{{error}}</view>
+    <view wx:if="{{status === 1}}">
+      <navigator
+        url="/pages/Exchange/exchangeRecordList"
+        hover-class="none"
+        class="btn_true"
+      >
+        查看交换记录
+      </navigator>
+      <navigator
+        url="/pages/Exchange/index"
+        hover-class="none"
+        class="btn_false"
+        open-type="switchTab"
+      >
+        继续交换
+      </navigator>
+    </view>
+    <view wx:if="{{status === 2}}">
+      <navigator
+        url="/pages/Exchange/index"
+        hover-class="none"
+        class="btn_true"
+        open-type="switchTab"
+      >
+        返回
+      </navigator>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/api';
+import BackHome from '@/components/backHome';
+export default class ExchangeSucc extends wepy.page {
+  config = {
+    navigationBarTitleText: '交换申请',
+    disableScroll: true
+  }
+  onLoad(option) {
+    let query = JSON.parse(option.query);
+    this.createOrder(query);
+  }
+  components = {
+    BackHome
+  }
+  async createOrder(query) {
+    let resp = await api.replyExchange({ method: 'POST', query });
+    if (resp.data.httpCode === '200') {
+      this.status = 1;
+    } else {
+      this.error = resp.data.msg;
+      this.status = 2;
+    }
+    this.$apply();
+  }
+  data = {
+    status: 0,
+    images: ['https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/%E5%85%91%E6%8D%A2%E8%AE%B0%E5%BD%95%20(2)%402x.png',
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E6%94%B6%E6%AC%BE%E6%88%90%E5%8A%9F%403x.png',
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%90%88%E5%B9%B6%E5%BD%A2%E7%8A%B6%403x.png'
+    ],
+    tips: ['交换中', '交换成功', '交换失败'],
+    error: ''
+  }
+  methods = {
+    JumpRoute() {
+      wx.navigateBack();
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.exchangeSucc {
+  .tips {
+    width: 160rpx;
+    height: 160rpx;
+    margin: 0 auto;
+    margin-top: 200rpx;
+  }
+  .tipsWord {
+    text-align: center;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: rgba(51, 51, 51, 1);
+    margin-top: 20rpx;
+  }
+  .tipsSecond {
+    font-size: 28rpx;
+    color: @regular-text-color;
+    text-align: center;
+    margin-top: 20rpx;
+  }
+  .btn_true {
+    width: 590rpx;
+    height: 80rpx;
+    background: rgba(36, 37, 55, 1);
+    border-radius: 10rpx;
+    text-align: center;
+    line-height: 80rpx;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 1);
+    margin: 0 auto;
+    margin-top: 120rpx;
+  }
+  .btn_false {
+    width: 590rpx;
+    height: 80rpx;
+    border-radius: 10rpx;
+    text-align: center;
+    line-height: 80rpx;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: rgba(36, 37, 55, 1);
+    margin: 0 auto;
+    margin-top: 60rpx;
+    border: 2px solid rgba(36, 37, 55, 1);
+  }
+}
+</style>

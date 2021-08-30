@@ -1,0 +1,212 @@
+<template>
+  <view class="orderDetail">
+    <BackHome bottom="50"/>
+    <view class="top flex-between">
+      <view class="logo">
+        <image class="image" src="{{orderDetail.picture}}" />
+      </view>
+      <view class="right">
+        <view class="proName"><text wx:if="{{orderDetail.orderType === '1'}}">【夺宝码】</text>{{orderDetail.productName}}</view>
+        <view wx:if="{{orderDetail.orderType === '1'}}">
+          <view class="btn" wx:if="{{orderDetail.treasureStatus  === '7'}}" @tap="treasureDetail('{{orderDetail.productId}}')">再来一单</view>
+          <view class="tips" wx:else>活动已结束</view>
+        </view>
+        <view wx:else>
+          <view class="btn" wx:if="{{orderDetail.productStatus  === '4'}}" @tap="proDetail('{{orderDetail}}')">再来一单</view>
+          <view class="tips" wx:else>商品已下架</view>
+        </view>
+      </view>
+    </view>
+    <view class="strip" />
+    <view class="desc">
+      <view class="title">订单信息</view>
+      <scroll-view class="wrap" scroll-y="true">
+        <view class="item flex-between">
+          <view class="left">订单数量：</view>
+          <view class="right">x{{orderDetail.productCount}}</view>
+        </view>
+        <view class="item flex-between">
+          <view class="left">商品总价：</view>
+          <view class="right">{{orderDetail.orderPoints}}积分</view>
+        </view>
+        <view class="item flex-between">
+          <view class="left">订单状态：</view>
+          <view class="right">交易成功</view>
+        </view>
+        <view class="item flex-between" wx:if="{{orderDetail.orderType === '1'}}">
+          <view class="left">夺宝码：</view>
+          <view class="right">
+            <repeat
+              for="{{orderDetail.partInCodeList }}"
+              wx:key="index"
+              index="index"
+              item="item"
+            >
+              <view>{{item.treasureCode}}</view>
+            </repeat>
+          </view>
+        </view>
+        <view class="item flex-between">
+          <view class="left">使用积分：</view>
+          <view class="right">
+            <repeat
+              for="{{orderDetail.payList}}"
+              wx:key="index"
+              index="index"
+              item="item"
+            >
+              <view>{{item.tranNum}}{{item.pointName}}</view>
+            </repeat>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    <view class="bottom">
+      <view>订单编号：{{orderDetail.id}}</view>
+      <view>下单时间：{{orderDetail.updateTime}}</view>
+    </view>
+    <ListBottom position="absolute"/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+// import util from '@/utils/util';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+export default class OrderDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: ''
+  };
+  data = {
+    orderDetail: '',
+    entId: '',
+    productId: ''
+  }
+  components={
+    ListBottom,
+    BackHome
+  }
+  onLoad(option) {
+    this.entId = option.id;
+    this.productId = option.productId;
+    this.getOrderDetail(option.id);
+  }
+  // 订单详情
+  async getOrderDetail(id) {
+    let res = await api.orderDetail({ id: id });
+    if (res.data.httpCode === '200') {
+      this.orderDetail = res.data.data;
+      if (this.orderDetail.orderType === '0') {
+        wx.setNavigationBarTitle({
+          title: '兑换详情'
+        });
+      } else {
+        wx.setNavigationBarTitle({
+          title: '夺宝详情'
+        });
+      }
+      this.$apply();
+    }
+  }
+  methods = {
+    proDetail(value) {
+      if (value.productType === '1') {
+        wx.navigateTo({
+          url: '/pages/ProDetail/index?id=' + value.productId
+        });
+      } else {
+        wx.navigateTo({
+          url: '/package_saleProDetail/pages/Detail/index?id=' + value.productId
+        });
+      }
+    },
+    treasureDetail(id) {
+      wx.navigateTo({
+        url: '/pages/PointsTreasure/detail?id=' + id
+      });
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins' ;
+.orderDetail {
+  .top {
+    padding: 30rpx;
+    width: 690rpx;
+    .logo {
+      width:200rpx;
+      height:188rpx;
+    }
+    .right {
+      height:188rpx;
+      width:470rpx;
+      margin-left: 20rpx;
+      display: flex;
+      flex-direction:column;
+      justify-content: space-between;
+      .proName {
+        color:rgba(51,51,51,1);
+        font-weight:600;
+      }
+      .tips {
+        text-align: right;
+        color:rgba(153,153,153,1);
+      }
+      .btn {
+        width:136rpx;
+        height:46rpx;
+        border-radius:10rpx;
+        border:1rpx solid rgba(67,84,255,1);
+        text-align: center;
+        line-height: 46rpx;
+        font-size:24rpx;
+        color:rgba(67,84,255,1);
+        float: right;
+      }
+    }
+  }
+  .desc {
+    width:750rpx;
+    margin: 0 auto;
+    .title {
+      padding-left: 30rpx;
+      font-size:32rpx;
+      font-family:PingFangSC-Semibold,PingFang SC;
+      font-weight:600;
+      color:rgba(51,51,51,1);
+      height: 104rpx;
+      line-height: 104rpx;
+      border-bottom: 1px solid #D8D8D8;
+    }
+    .wrap {
+      border-bottom: 1px solid #D8D8D8;
+      padding-bottom: 30rpx;
+      max-height: 45vh;
+      .item {
+        padding: 0 30rpx 0 30rpx;
+        margin-top: 28rpx;
+        color:rgba(51,51,51,1);
+        .left {
+          font-size:24rpx;
+          font-weight:400;
+          color:rgba(153,153,153,1);
+        }
+      }
+    }
+  }
+  .bottom {
+    padding-left: 30rpx;
+    view{
+      font-size:24rpx;
+      font-weight:400;
+      color:rgba(153,153,153,1);
+      margin-top: 28rpx;
+    }
+  }
+}
+
+</style>

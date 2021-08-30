@@ -1,0 +1,65 @@
+<template lang="wxml">
+  <view class="cardRoll">
+    <web-view src="{{webViewUrl}}/wechat-v2/v2/build/index.html?userInfo={{userInfo}}#/coupons"></web-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+export default class CardRoll extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的卡券'
+  }
+  data = {
+    userInfo: '',
+    webViewUrl: ''
+  }
+  onLoad() {
+    const webViewUrl = wepy.$appConfig.webViewUrl;
+    this.webViewUrl = webViewUrl;
+  }
+  onShow() {
+    this.sksxUserInfo();
+  }
+  async sksxUserInfo() {
+    let resp = await api.sksxUserInfo({ method: 'POST' });
+    if (resp.data.httpCode === '200') {
+      this.userInfo = resp.data.data;
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.line {
+  margin-left: 20rpx;
+}
+.cardRoll {
+  .head {
+    width: 750rpx;
+    height: 94rpx;
+    display: flex;
+    flex-wrap: nowrap;
+    .item {
+      flex: 1;
+      font-size: 32rpx;
+      color: rgba(51, 51, 51, 1);
+      line-height: 44rpx;
+      text-align: center;
+    }
+    .active {
+      color: @primary-color;
+      border-bottom: 1rpx solid @primary-color;
+    }
+  }
+  .card-swiper {
+    height: 90vh;
+  }
+  .wrap {
+    height: 85vh;
+    margin-top: 40rpx;
+  }
+}
+</style>

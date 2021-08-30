@@ -1,0 +1,222 @@
+<style lang="less">
+// 全局应用样式
+@import './styles/reset';
+</style>
+
+<script>
+import wepy from 'wepy';
+import 'wepy-async-function';
+import { SYSTEM_INFO, UUID, USER_SPECICAL_INFO } from '@/utils/constant';
+import tips from '@/utils/tip';
+import api from '@/api/getApi';
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/Home/index',
+      'pages/WebView/index',
+      // 商城
+      'pages/Mall/proList',
+      'pages/Mall/index',
+      // 交换
+      'pages/Exchange/index',
+      'pages/Exchange/exchangeRecordList',
+      'pages/Exchange/exchangeSucc',
+      'pages/Exchange/selectPoint',
+      'pages/Exchange/succ',
+      'pages/Exchange/apply',
+      // 夺宝
+      'pages/PointsTreasure/index',
+      'pages/PointsTreasure/treasureRule',
+      'pages/PointsTreasure/detail',
+      'pages/PointsTreasure/exchangeOrder',
+      'pages/PointsTreasure/paySucc',
+      'pages/TreasureList/historyTreasure',
+      'pages/TreasureList/myTreasure',
+      'pages/TreasureList/prizeRule',
+      // 积分钱包
+      'pages/PointsWallet/index',
+      'pages/PointsWallet/selectEnt',
+      'pages/PointsWallet/pointsImport',
+      'pages/PointsWallet/importSucc',
+      'pages/PointsWallet/pointsList',
+      'pages/PointsWallet/pointsDetail',
+      'pages/PointsWallet/pointsRule',
+      'pages/PointsWallet/changePhone/index',
+      // 商品详情
+      'pages/ProDetail/index',
+      'pages/ProDetail/exchangeOrder',
+      'pages/ProDetail/paySucc',
+      // 登陆
+      'pages/MyAuth/index',
+      'pages/MyAuth/serviceProtocol',
+      'pages/MyAuth/signIn',
+      'pages/MyAuth/loginIndexes',
+      // 我的
+      'pages/Me/helpCenter',
+      'pages/Me/index',
+      // 订单
+      'pages/Order/index',
+      'pages/Order/detail',
+      // 帮助助手
+      'pages/Help/index',
+      'pages/Help/pointImport',
+      'pages/Help/makePoints',
+      'pages/Help/product',
+      'pages/Help/pointTreasure',
+      'pages/Help/searchPoint',
+      'pages/CardRoll/index',
+      'pages/CardRoll/detail'
+    ],
+    subPackages: [
+      {
+        root: 'package_search',
+        pages: ['pages/Search/index']
+      },
+      {
+        root: 'package_saleProDetail',
+        pages: ['pages/Detail/index', 'pages/Detail/paySucc', 'pages/Detail/exchangeOrder']
+      }
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: 'WeChat',
+      navigationBarTextStyle: 'black'
+    },
+    tabBar: {
+      list: [
+        {
+          pagePath: 'pages/Home/index',
+          text: '首页',
+          iconPath: 'images/tabIcon/home.png',
+          selectedIconPath: 'images/tabIcon/homed.png'
+        },
+        {
+          pagePath: 'pages/Mall/index',
+          text: '积分商城',
+          iconPath: 'images/tabIcon/mall.png',
+          selectedIconPath: 'images/tabIcon/malled.png'
+        },
+        {
+          pagePath: 'pages/Exchange/index',
+          text: '积分互换',
+          iconPath: 'images/tabIcon/exchange.png',
+          selectedIconPath: 'images/tabIcon/exchanged.png'
+        },
+        {
+          pagePath: 'pages/Me/index',
+          text: '我的',
+          iconPath: 'images/tabIcon/me.png',
+          selectedIconPath: 'images/tabIcon/med.png'
+        }
+      ],
+      color: '#fff',
+      selectedColor: '#fff',
+      backgroundColor: '#3F415D',
+      custom: true
+    },
+    permission: {
+      'scope.userLocation': {
+        desc: '你的位置信息将用于小程序位置接口的效果展示'
+      }
+    },
+    // 跳转别的小程序
+    navigateToMiniProgramAppIdList: ['wx7e95c2dccb6ec762']
+  };
+  globalData = {
+    userInfo: null,
+    isConnected: true,
+    inPoints: {},
+    outPoints: {},
+    selectedEnt: {},
+    entDetail: {},
+    loginFlag: '',
+    pointAllCheck: {},
+    is_show_alert: false
+  };
+  constructor() {
+    super();
+    this.use('requestfix');
+    this.use('promisify');
+    this.interceptor();
+  }
+  onLaunch() {
+    this.globalData.is_show_alert = true;
+    this.checkNetworkType();
+    let systemInfo = wepy.getSystemInfoSync();
+    wepy.setStorageSync(SYSTEM_INFO, systemInfo);
+    this.globalData.userInfo = wepy.getStorageSync(USER_SPECICAL_INFO);
+  }
+  // 拦截器
+  interceptor() {
+    this.intercept('request', {
+      // 请求失败后的回调函数
+      fail(p) {
+        tips.error('接口出错');
+        return p;
+      },
+      success(p) {
+        // 登录判断
+        if (p.data.httpCode === 401) {
+          if (wepy.getStorageSync(USER_SPECICAL_INFO)) {
+            this.getUserInfo();
+          } else {
+            this.checkSettingStatus();
+          }
+        }
+        // 您的积分不足以购买当前数量的商品，是否去导入积分?
+        // httpCode === '400'
+        // 判断服务器出错
+        if (p.data.msg && p.data.msg.indexOf('您的积分不足') !== -1) {
+          return p;
+        }
+        if (p.data.httpCode !== '200') {
+          // setTimeout(function () {
+          //   wx.showToast({
+          //     title: p.data.msg,
+          //     icon: 'none',
+          //     mask: true,
+          //     duration: 2000
+          //   });
+          // }, 200);
+        }
+        return p;
+      }
+    });
+  }
+  // 判断是否授权
+  async checkSettingStatus() {
+    try {
+      let auth = await wepy.getSetting(); // 调用getSetting Api
+      let authSetting = auth.authSetting; // 获取authSetting用来判断是否授权
+      if (authSetting['scope.userInfo']) {
+        wepy.navigateTo({ url: '/pages/MyAuth/loginIndexes' });
+      } else {
+        wepy.navigateTo({ url: '/pages/MyAuth/index' });
+      }
+    } catch (error) {
+      console.log(error, 'checkSettingStatus');
+    }
+  }
+  // token失效
+  async getUserInfo() {
+    let { code } = await wepy.login();
+    let resCode = await api.authCode2Session({ code: code, baseUrl: wepy.$appConfig.baseUrl });
+    if (resCode.data.httpCode === '200') {
+      wepy.setStorageSync(UUID, resCode.data.data.token);
+    }
+  }
+  // 初次加载判断网络情况
+  async checkNetworkType() {
+    let resNetwork = await wepy.getNetworkType();
+    if (resNetwork.networkType === 'none') {
+      this.globalData.isConnected = false;
+      wx.showToast({
+        title: '当前无网络',
+        icon: 'loading',
+        duration: 2000
+      });
+    }
+  }
+}
+</script>

@@ -1,0 +1,294 @@
+<template lang="wxml">
+  <view class="mall">
+    <!-- banner -->
+    <MallBanner  @searchJump.user="searchJump" :banner.sync="banner" @jump.user="bannerRouteJump" />
+    <Nav/>
+    <!-- 温馨提示 -->
+    <Tips />
+    <!-- 筛选按钮 -->
+    <view style="height:110rpx;">
+      <view class="select {{tabFix}}" id="tab">
+        <view class="wrap flex-between">
+          <view class="item {{salesActive?'active':''}}" @tap="salesClick(7)">销量</view>
+          <view class="item" @tap="selectClick">{{entName}}</view>
+        </view>
+      </view>
+    </view>
+    <!-- 产品列表 -->
+    <view class="product" scroll-y="true" wx:if="{{products.length > 0}}">
+      <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+        <ProItem :item='item'/>
+      </repeat>
+      <!-- 底线 -->
+      <ListBottom wx:if="{{ finished && page.pageNum >= totalPages}}"  marginTop="58" height="120"/>
+    </view>
+    <ProductDefault
+    wx:if="{{ finished && products.length === 0}}"
+    src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E5%95%86%E5%93%81~%403x.png'
+    tips='暂无商品~'
+    marginTop='300'
+    marginBottom='400'
+    imgWidth='260'
+    imgHeight='216'
+    />
+    <!-- 顶部筛选 -->
+    <view class="modal" catchtouchmove='true'>
+      <view class="over_modal {{hidden?'hidden':''}}" @tap.stop="closeModal"></view>
+      <view
+        class="panle_modal {{hidden?'hidden':''}}"
+        animation="{{animationData}}"
+      >
+        <view class="modal_content">
+          <view class="modal_content_son">
+            <scroll-view scroll-y="true" class="enterprise">
+              <repeat for="{{enterprise}}" wx:key="item.id" index="index" item="item">
+                <view class="{{selectEnt === item.id?'active':'tabItem'}}">
+                  <view class="text" @tap="enterpriseTap({{item}})">
+                    {{item.entName}}
+                  </view>
+                </view>
+              </repeat>
+            </scroll-view>
+          </view>
+        </view>
+        <view class="modal_bottom">
+          <view class="btn" @tap="reset">重置</view>
+          <view class="btn" @tap="confirm">确认</view>
+        </view>
+      </view>
+    </view>
+    <!-- 顶部筛选结束 -->
+    <Bottom src1='/images/tabIcon/malled.png'/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/EdaApi';
+import tips from '@/utils/tip';
+import Nav from './components/Nav';
+import Tips from './components/Tips';
+import MallBanner from './components/MallBanner';
+import ProItem from '@/components/proItem';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import topModalMixin from '@/mixins/topModal';
+import ProductDefault from '@/components/default/product';
+import bannerJump from '@/mixins/bannerJump';
+import Bottom from '@/components/bottom';
+export default class Mall extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分商城',
+    enablePullDownRefresh: true,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    Nav,
+    Tips,
+    MallBanner,
+    ProItem,
+    ListBottom,
+    ProductDefault,
+    Bottom
+  }
+  data = {
+    tabTop: '',
+    tabFix: '',
+    salesActive: false,
+    modalHidden: true,
+    enterprise: [], // 企业
+    selectEnt: '',
+    entName: '筛选'
+  };
+  mixins = [proPage, topModalMixin, bannerJump];
+  onLoad(options) {
+    this.searchType = 1;
+    this.proList();
+    this.EnterpriseList();
+    this.getBanner(3);
+    // 获取筛选框离顶部的高度
+    const query = wx.createSelectorQuery();
+    setTimeout(() => {
+      query.select('#tab').boundingClientRect((res) => {
+        this.tabTop = res.top;
+      }).exec();
+    }, 500);
+  }
+  onShow() {
+    this.createAnimation();
+  }
+  // 下拉刷新
+  onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    this.salesActive = false;
+    this.searchType = 1;
+    this.selectEnt = '';
+    this.entName = '筛选';
+    this.getBanner(3);
+    this.proList(1);
+    this.EnterpriseList();
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList();
+    }
+  }
+  methods = {
+    // banner跳转
+    bannerRouteJump (item) {
+      this.bannerCallback(item);
+    },
+    // 搜索跳转
+    searchJump() {
+      wx.navigateTo({
+        url: '/package_search/pages/Search/index'
+      });
+    },
+    // 重置
+    reset() {
+      this.selectEnt = 0;
+      this.entName = '筛选';
+    },
+    // 确认
+    confirm() {
+      if (this.selectEnt === 0) {
+        tips.alert('请选择企业');
+        return false;
+      }
+      this.entName = this.selecEntName;
+      this.closeModalSon();
+      if (this.salesActive) {
+        this.searchType = 4;
+        this.proList(1);
+      } else {
+        this.searchType = 2;
+        this.proList(1);
+      }
+    },
+    // 销量筛选
+    salesClick(v) {
+      wx.pageScrollTo({
+        scrollTop: this.tabTop
+      });
+      this.salesActive = true;
+      this.searchType = 4;
+      if (this.selectEnt === 0) {
+        this.selectEnt = null;
+      }
+      this.proList(1);
+    },
+    selectClick(v) {
+      this.openModalSon(632);
+      wx.pageScrollTo({
+        scrollTop: this.tabTop
+      });
+    },
+    enterpriseTap(value) {
+      this.selectEnt = value.id;
+      this.selecEntName = value.entName;
+    }
+  }
+  onPageScroll = (e) => {
+    // tab的吸顶效果
+    if (e.scrollTop > this.tabTop) {
+      if (this.tabFix) {
+        return;
+      }
+      this.tabFix = 'fixedTab';
+    } else {
+      this.tabFix = '';
+    }
+    this.$apply();
+  }
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      productType: 1, // 1、普通商品2、特惠商品
+      searchType: this.searchType, // 1、积分商城默认排序2/积分价值由大到小>销量由多到少>上架时间倒序3、积分价值排序4、销量倒叙5、销量正序6、热门推荐排序7/权重倒叙
+      entId: this.selectEnt
+    };
+    let resp = await api.productPage({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+  // 企业列表
+  async EnterpriseList() {
+    this.enterprise = [];
+    let res = await api.getEnterpriseList();
+    if (res.data.httpCode === '200') {
+      wx.hideNavigationBarLoading();
+      this.enterprise = res.data.data;
+      this.enterprise.unshift({ id: '', entName: '全部企业' });
+      this.$apply();
+    }
+    wx.stopPullDownRefresh();
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/topModal';
+.mall {
+  .select {
+    width: 750rpx;
+    padding: 10rpx 0 10rpx 0;
+    .wrap {
+      width: 650rpx;
+      margin: 0 auto;
+      .item {
+        width: 310rpx;
+        height: 80rpx;
+        border-radius: 40rpx;
+        border: 1rpx solid @white-color;
+        font-size: 32rpx;
+        text-align: center;
+        color: @white-color;
+        line-height: 80rpx;
+        cursor: pointer;
+        .ellipsis();
+      }
+      .active {
+        border: 0px;
+        background: linear-gradient(
+          135deg,
+          rgba(91, 253, 255, 1) 0%,
+          rgba(67, 84, 255, 1) 100%
+        );
+      }
+    }
+  }
+  .product {
+    margin-top: 30rpx;
+  }
+  .fixedTab {
+    width: 100%;
+    position: fixed;
+    top: 0rpx;
+    background: #242537;
+    z-index: 10;
+  }
+  // 顶部弹框样式
+  .enterprise {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    margin: 30rpx;
+  }
+}
+</style>

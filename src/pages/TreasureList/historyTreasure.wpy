@@ -1,0 +1,129 @@
+<template lang="wxml">
+  <view class="historyTreasure">
+    <BackHome bottom="50" flag="1"/>
+    <view class="header">
+      <tab @currentTab.user="getCurrentTab" :tabList.sync="tabList" :activeTab.sync="activeTab"></tab>
+    </view>
+    <scroll-view scroll-y="{{true}}" class="record-lists-box" wx:if="{{products.length > 0}}" bindscrolltolower="lower">
+      <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+        <ProItem :item='item' @exchange.user="exchange" flag="1"/>
+      </repeat>
+    </scroll-view>
+    <!-- 底线 -->
+    <view style="margin-top:30rpx">
+      <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" />
+    </view>
+    <view  wx:if="{{ finished && products.length === 0}}">
+      <ProductDefault
+        src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E6%9A%82%E6%97%A0%E6%9C%AA%E5%AE%8C%E6%88%90%E6%B4%BB%E5%8A%A8%403x.png'
+        :tips.sync='tips'
+        marginTop='300'
+        marginBottom='60'
+        imgWidth='260'
+        imgHeight='226'
+        color="#fff"
+      />
+      <navigator url="/pages/PointsTreasure/index" hover-class="none"  class="noBtn">
+        马上参与
+      </navigator>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import Tab from './components/tab';
+import api from '@/api/api';
+import Defalut from '@/components/default';
+import proPage from '@/mixins/proPage';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+import ProItem from './components/proItem';
+export default class historyTreasure extends wepy.page {
+  config = {
+    navigationBarTitleText: '往期夺宝',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  };
+  components = {
+    tab: Tab,
+    Defalut,
+    ListBottom,
+    BackHome,
+    ProductDefault,
+    ProItem
+  };
+  mixins = [proPage];
+  data = {
+    activeTab: 1,
+    tabList: ['待开奖', '已开奖', '未完成'],
+    status: 3,
+    selectPoint: {},
+    tipsDefaultList: ['暂无待开奖活动', '暂无已开奖活动', '暂无未完成活动'],
+    tips: '暂无已开奖活动'
+  };
+  methods = {
+    getCurrentTab(v) {
+      this.tips = this.tipsDefaultList[v];
+      this.status = v + 2;
+      this.$apply();
+      this.proList(1);
+    }
+  };
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      status: this.status // 0：未开始，1：进行中，2：待开奖，3：已开奖，4：未完成
+    };
+    let resp = await api.getHasPartakeList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.$apply();
+      this.proList();
+    }
+  }
+  onShow() {
+    this.proList(1);
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.historyTreasure {
+  .image {
+    width: 100%;
+    height: 100%;
+  }
+  width: 750rpx;
+  height: 100vh;
+  .record-lists-box {
+    height: calc(100vh - 130px);
+    margin-top: 30rpx;
+  }
+  .noBtn {
+    width:220rpx;
+    height:60rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:10rpx
+  }
+}
+</style>

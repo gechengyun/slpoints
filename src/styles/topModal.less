@@ -1,0 +1,211 @@
+// 底部弹出模态框样式
+@import 'variables';
+@import 'mixins';
+.modal {
+  .over_modal {
+    position: fixed;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    width: 100%;
+    height: 100%;
+    top: 0;
+  }
+  .panle_modal {
+    position: fixed;
+    height: 0rpx;
+    width: 100%;
+    z-index: 1002;
+    background: #242537;
+    top: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    .modal_content {
+      // 筛选按钮样式
+      .tabItem {
+        width: 210rpx;
+        height: 60rpx;
+        border-radius: 10rpx;
+        margin-bottom: 30rpx;
+        margin-right: 20rpx;
+        position: relative;
+        display: inline-block;
+        border: 1px solid transparent;
+        background: #242537;
+        background-clip: padding-box;
+        line-height: 60rpx;
+        font-size: 24rpx;
+        color: #fff;
+        text-align: center;
+        cursor: pointer;
+        &:nth-child(3n + 0) {
+          margin-right: 0;
+        }
+        &:after {
+          position: absolute;
+          top: -1px;
+          bottom: -1px;
+          left: -1px;
+          right: -1px;
+          background: linear-gradient(
+            315deg,
+            rgba(91, 253, 255, 1),
+            rgba(67, 84, 255, 1)
+          );
+          content: '';
+          z-index: -1;
+          border-radius: 10rpx;
+        }
+        .text {
+          width: 100%;
+          .ellipsis();
+          padding: 0 16rpx;
+          box-sizing: border-box;
+        }
+      }
+      .active {
+        width: 210rpx;
+        height: 60rpx;
+        border-radius: 10rpx;
+        margin-bottom: 30rpx;
+        margin-right: 20rpx;
+        position: relative;
+        display: inline-block;
+        border: 1px solid transparent;
+        background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+        background-clip: padding-box;
+        line-height: 60rpx;
+        font-size: 24rpx;
+        color: #fff;
+        text-align: center;
+        cursor: pointer;
+        &:nth-child(3n + 0) {
+          margin-right: 0;
+        }
+        .text {
+          width: 100%;
+          .ellipsis();
+          padding: 0 16rpx;
+          box-sizing: border-box;
+        }
+      }
+    }
+    .modal_bottom {
+      width:650rpx;
+      height: 96rpx;
+      position: absolute;
+      left:50rpx;
+      bottom:0;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      .btn {
+        width:300rpx;
+        height:72rpx;
+        background:rgba(71,73,105,1);
+        border-radius:40rpx;
+        font-size:28rpx;
+        color:rgba(255,255,255,1);
+        line-height:72rpx;
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+        cursor: pointer;
+        &:after {
+          position: absolute;
+          top: -1px;
+          bottom: -1px;
+          left: -1px;
+          right: -1px;
+          background: linear-gradient(
+            315deg,
+            rgba(91, 253, 255, 1),
+            rgba(67, 84, 255, 1)
+          );
+          content: '';
+          z-index: -1;
+          border-radius: 40rpx;
+        }
+        &:hover {
+          background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+        }
+      }
+    }
+  }
+  .hidden {
+    display: none;
+  }
+}
+.modal1 {
+  .over_modal {
+    position: fixed;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    width: 100%;
+    height: 100%;
+    top: 100rpx;
+  }
+  .panle_modal {
+    position: fixed;
+    height: 0rpx;
+    width: 100%;
+    z-index: 1002;
+    background: #fff;
+    top: 100rpx;
+    box-sizing: border-box;
+    overflow: hidden;
+    .modal_content {
+      // 筛选按钮样式
+      .tabItem {
+        width: 210rpx;
+        height: 60rpx;
+        border-radius: 10rpx;
+        margin-bottom: 30rpx;
+        margin-right: 20rpx;
+        position: relative;
+        display: inline-block;
+        border: 1px solid transparent;
+        background: #242537;
+        background-clip: padding-box;
+        line-height: 60rpx;
+        font-size: 24rpx;
+        color: #fff;
+        text-align: center;
+        cursor: pointer;
+        &:nth-child(3n + 0) {
+          margin-right: 0;
+        }
+        &:after {
+          position: absolute;
+          top: -1px;
+          bottom: -1px;
+          left: -1px;
+          right: -1px;
+          background: linear-gradient(
+            315deg,
+            rgba(91, 253, 255, 1),
+            rgba(67, 84, 255, 1)
+          );
+          content: '';
+          z-index: -1;
+          border-radius: 10rpx;
+        }
+        .text {
+          width: 100%;
+          .ellipsis();
+          padding: 0 16rpx;
+          box-sizing: border-box;
+        }
+      }
+      .active {
+        background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+      }
+    }
+  }
+  .hidden {
+    display: none;
+  }
+}

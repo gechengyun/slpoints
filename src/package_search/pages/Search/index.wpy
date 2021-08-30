@@ -1,0 +1,182 @@
+<template>
+  <view class="search">
+    <BackHome bottom="50"/>
+    <view class="head">
+      <view class="left">
+        <view class="search_icon"><image class="image" src="/images/search.png" /></view>
+        <input
+          class='input'
+          placeholder="搜你喜欢"
+          focus="{{focus}}"
+          bindconfirm="confirm"
+          confirm-hold="{{confirmHold}}"
+          value="{{value}}"
+        />
+      </view>
+      <view class="cancel" @tap="cancels">取消</view>
+    </view>
+    <view class="history">
+      <view class="title">
+        <view>历史记录</view>
+        <view class="clear" @tap="clearTap">
+          <image class="empty" src="/images/clean.png" />
+        </view>
+      </view>
+      <scroll-view scroll-y="true">
+        <view class="content">
+          <repeat for="{{historyList}}" wx:key="index" index="index" item="item">
+            <view class="item" @tap="handleTap('{{item}}')">
+              {{item}}
+            </view>
+          </repeat>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import tip from '@/utils/tip';
+import BackHome from '@/components/backHome';
+export default class Search extends wepy.page {
+  config = {
+    navigationBarTitleText: '搜索',
+    disableScroll: true
+  }
+  data = {
+    focus: true,
+    confirmHold: true,
+    value: '',
+    historyList: []
+  }
+  components = {
+    BackHome
+  }
+  onShow() {
+    let that = this;
+    this.focus = true;
+    wx.getStorage({
+      key: 'keywords',
+      success (res) {
+        that.historyList = JSON.parse(res.data);
+      }
+    });
+  }
+  methods = {
+    cancels() {
+      this.setData({
+        value: ''
+      });
+    },
+    confirm(e) {
+      this.focus = true;
+      this.confirmHold = true;
+      if (!e.detail.value) {
+        tip.error('内容不能为空');
+      } else {
+        let historyData = [...this.historyList];
+        if (!this.historyList.includes(e.detail.value)) {
+          historyData.push(e.detail.value);
+          let keywords = JSON.stringify(historyData);
+          wx.setStorage({
+            key: 'keywords',
+            data: keywords
+          });
+          setTimeout(() => {
+            this.historyList = historyData;
+          }, 1000);
+        }
+        wx.navigateTo({
+          url: '/pages/Mall/proList?value=' + e.detail.value
+        });
+      }
+    },
+    handleTap(value) {
+      this.value = value;
+      wx.navigateTo({
+        url: '/pages/Mall/proList?value=' + value
+      });
+    },
+    clearTap() {
+      try {
+        wx.removeStorageSync('keywords');
+        this.historyList = [];
+      } catch (e) {
+        // Do something when catch error
+      }
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../../styles/variables';
+.search {
+  .head {
+    display: flex;
+    flex-wrap: nowrap;
+    margin: 30rpx 0 0 30rpx;
+    .left {
+      position: relative;
+      .input {
+        width:614rpx;
+        height:64rpx;
+        background:rgba(246,246,246,1);
+        border-radius:36rpx;
+        padding-left: 90rpx;
+        box-sizing: border-box;
+      }
+      .search_icon {
+        position: absolute;
+        width: 36rpx;
+        height: 36rpx;
+        margin:14rpx 0 0 30rpx;
+        .image {
+          width:100%;
+          height: 100%;
+        }
+      }
+    }
+    .cancel {
+      font-size:28rpx;
+      color:rgba(102,102,102,1);
+      line-height:64rpx;
+      margin-left: 20rpx;
+    }
+  }
+  .history {
+    margin: 60rpx 30rpx 0 30rpx;
+    .title {
+      font-size:28rpx;
+      font-weight:600;
+      color:rgba(51,51,51,1);
+      display: flex;
+      justify-content: space-between;
+      .clear {
+        .empty {
+          width:28rpx;
+          height: 32rpx;
+        }
+      }
+    }
+    .content {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 30rpx;
+      max-height: 1000rpx;
+      .item {
+        //
+        padding: 0 30rpx;
+        height:46rpx;
+        border-radius:25rpx;
+        border:1rpx solid rgba(102,102,102,1);
+        line-height:46rpx;
+        text-align: center;
+        font-size:24rpx;
+        color:rgba(102,102,102,1);
+        margin-right: 30rpx;
+        margin-bottom: 20rpx;
+      }
+    }
+  }
+}
+</style>

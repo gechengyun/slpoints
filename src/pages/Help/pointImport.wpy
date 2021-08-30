@@ -1,0 +1,151 @@
+<template lang="wxml">
+  <view class="point-Import">
+    <view class="title">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title1-1.png" class="image" />
+    </view>
+    <view class="warp">
+        <view class="word">
+          1·当您需要导入积分时，您可以在首页点击积分钱包，或者是在个人中心点击积分钱包功能进入到<text class="blue">积分钱包</text>
+        </view>
+        <view class="second-word">首页>积分钱包</view>
+        <view class="image1">
+            <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/1.png" class="image" />
+        </view>
+        <view class="second-word">个人中心>积分钱包</view>
+        <view class="image1">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/2.png" class="image" />
+        </view>
+        <view class="line"/>
+        <view class="word">
+          2·点击“<text class="blue">手动导入</text>”后选择企业
+        </view>
+        <view class="second-word">积分钱包>手动导入</view>
+        <view class="image1">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/3.png" class="image" />
+        </view>
+        <view class="second-word">选择企业>点击“去导入”</view>
+        <view class="image1">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4.png" class="image" />
+        </view>
+        <view class="line"/>
+        <view class="word">
+          3· 选择企业之后，<text class="blue">输入您要导入的数量</text>就成功导入啦！记得<text class="blue">勾选</text>下方的积分导入授权选项哦！
+        </view>
+        <view class="second-word">输入数量>确认导入</view>
+        <view class="image2">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/5.png" class="image" />
+        </view>
+    </view>
+    <view class="title2">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title2.png" class="image" />
+    </view>
+    <view class="warp warp2">
+      <view class="word">
+        1·在积分导入过一次之后，我们会直接帮您记录在积分列表中您可以直接点击“<text class="blue">去导入</text>”按钮进行导入操作
+      </view>
+      <view class="second-word">积分钱包>去导入</view>
+      <view class="image3">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/6.png" class="image" />
+      </view>
+    </view>
+    <navigator url="/pages/PointsWallet/selectEnt" hover-class="none"  class="btn">去导入</navigator>
+    <ListBottom marinTop="50" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+export default class HelpPointImport extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分导入助手',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    ListBottom
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.point-Import {
+  .title {
+    width:524rpx;
+    height:100rpx;
+    margin: 0 auto;
+    margin-top:40rpx;
+  }
+  .warp {
+    width:690rpx;
+    height: 2694rpx;
+    background:rgba(255,255,255,1);
+    border-radius:20rpx;
+    border:2rpx solid rgba(151,151,151,1);
+    margin: 0 auto;
+    padding: 40rpx 30rpx;
+    box-sizing: border-box;
+    .word {
+      font-size:32rpx;
+      color:rgba(51,51,51,1);
+      line-height:44rpx;
+      .blue {
+        color: #4354FF
+      }
+    }
+    .second-word {
+      font-size:28rpx;
+      color:rgba(102,102,102,1);
+      margin:40rpx 0 20rpx 0;
+    }
+    .image1 {
+      width:630rpx;
+      height:246rpx;
+    }
+    .line {
+      width:630rpx;
+      height:2rpx;
+      border-bottom: 1px dashed #979797;
+      margin: 60rpx 0 38rpx 0;
+    }
+    .image2 {
+      width:630rpx;
+      height:582rpx;
+    }
+  }
+  .title2 {
+    width:584rpx;
+    height:192rpx;
+    margin: 0 auto;
+    margin-top:100rpx;
+  }
+  .warp2 {
+    height:726rpx;
+    .image3 {
+      width:630rpx;
+      height:374rpx;
+    }
+  }
+  .btn {
+    width:590rpx;
+    height:100rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:50rpx;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 100rpx;
+    font-size:36rpx;
+    font-weight:600;
+    color:rgba(255,255,255,1);
+    margin-top:120rpx;
+    margin-bottom:50rpx;
+  }
+}
+</style>

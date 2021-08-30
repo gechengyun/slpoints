@@ -1,0 +1,94 @@
+<template>
+  <view class="treasure-rule">
+    <BackHome bottom="50"/>
+    <view class="title">首选兑夺宝规则</view>
+    <view class="rule-box">
+      <view
+          class="rule-content rule-index"
+      >首选兑积分通兑平台提醒您注意以下夺宝活动规则，参与夺宝活动即视为您已阅读并认可本活动规则，了解并自愿接受本活动规则的约束。</view>
+      <view class="rule-header">参与须知</view>
+      <view
+          class="rule-content"
+      >1、每期夺宝活动设置固定数量夺宝码，到达开奖日期时，当夺宝码兑换到指定开奖数量后进入开奖阶段。否则，当期夺宝活动不进行开奖，返还消耗积分。</view>
+      <view class="rule-content">2、会员每期可兑换夺宝码数量上限不同。若兑换数量超过上限会有相关提示。</view>
+      <view class="rule-content">3、夺宝码兑换完成后，可以“我的夺宝码”中查看。</view>
+      <view class="rule-content">4、开奖后，会员可在参与的夺宝活动详情页查看开奖信息。</view>
+      <view
+          class="rule-content"
+      >5、中奖会员在开奖信息公示后，7个工作日内，接到官方客服联系，核实收取中奖信息证明（中奖截图、身份证照片、收货信息等）。中奖人身份确认后三个工作日内依次发出。</view>
+      <view
+          class="rule-content"
+      >6、中奖会员应如实提供相关证明信息，并确保信息的真实性、合法性。若因所提供信息问题导致的错发，奖品丢失或未收到商品，需由会员自行承担后果。若未在规定时间内提供证明信息，则视为自愿放弃中奖商品。</view>
+      <view
+          class="rule-content"
+      >7、奖品图片仅供参考，请以具体实物为准，相应奖品均由首选兑积分通兑平台购买自第三方，该夺宝活动与奖品产生和销售商家无关，但奖品对应配套服务及售后等，由相应奖品生产和销售商家负责提供，具体见奖品配套说明书。</view>
+      <view
+          class="rule-content"
+      >8、会员在收到奖品后，务必第一时间验货，若发现运输中造成商品损坏，请拒签退回。如确认无误方可签收，一经签收，奖品毁损灭失风险首选兑积分通兑平台概不负责。</view>
+      <view class="rule-content">9、奖品不支持退换，已开奖夺宝活动所消耗积分不可退还，奖品均不提供发票和收据等凭证。</view>
+      <view class="rule-content">10、由于网络环境与企业接口原因造成参与活动失败。本平台概不负责。</view>
+      <view class="rule-header">开奖规则</view>
+      <view class="rule-content">1、每期夺宝活动到达开奖日期时，如果夺宝码达到指定开奖数量时，随机取出50个该期夺宝码兑换参与时间。</view>
+      <view class="rule-content">2、将取出的50个时间数值进行求和（得出时间总和数值，每个时间按时、分、秒、毫秒顺序组合）</view>
+      <view
+          class="rule-content"
+      >3、使用50个时间总和数值除以该期夺宝码总数量得到的余数，再加上原始码1000001，得到最终中奖夺宝码，拥有该中奖号码会员获得当期奖品。</view>
+      <view class="rule-header">特别声明</view>
+      <view
+          class="rule-content"
+      >1、出于风险控制原因，如会员存在虚假信息、作弊、恶意攻击行为，或其他违法途径获取奖品等，本平台有权拒绝提供奖品，情节严重者奖有权追究法律责任。</view>
+      <view
+          class="rule-content"
+      >2、首选兑积分通兑平台可根据活动的实际情况，在法律允许范围内，对夺宝活动进行变动或调整，相关变动或调整将公布在夺宝规则页面上，并于公布时生效。</view>
+      <view
+          class="rule-content"
+      >3、因会员操作不当或会员所在地区网络故障，电信运营商故障等非本平台所能控制的原因导致用户无法参与活动或参与失败，本平台不负法律或经济责任。</view>
+      <view
+          class="rule-content"
+      >4、如出现不可抗力或情势变更的情况（包括但不限于重大灾害事件，活动受政府机关指令需要停止举办或调整，活动遭受网络攻击或系统故障需要暂停举办），则首选兑积分通兑平台可依据相关法律法规主张免责。</view>
+      <view class="rule-content">5、在法律允许范围内，首选兑积分通兑平台对本活动享有最终解释权。</view>
+    </view>
+    <ListBottom marginTop="58"/>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+export default class treasureRule extends wepy.page {
+  config = {
+    navigationBarTitleText: '夺宝规则'
+  };
+  components = {
+    ListBottom,
+    BackHome
+  }
+}
+</script>
+<style lang='less' scoped>
+.treasure-rule {
+  color: #333333;
+  .title {
+    font-size:40rpx;
+    font-weight:600;
+    text-align: center;
+    padding: 30rpx 0;
+  }
+  .rule-box {
+    width: 700rpx;
+    margin: 0 auto;
+    .rule-header {
+      padding-top: 20rpx;
+      padding-bottom: 10rpx;
+      font-weight:500;
+    }
+    .rule-content {
+      line-height: 40rpx;
+    }
+    .rule-index {
+      text-indent: 40rpx;
+    }
+  }
+}
+</style>

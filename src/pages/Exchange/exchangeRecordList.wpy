@@ -1,0 +1,274 @@
+<template lang="wxml">
+  <view class="record-list">
+    <BackHome bottom="50"/>
+    <view class="header">
+      <tab @currentTab.user="getCurrentTab" :tabList.sync="tabList" :activeTab.sync="activeTab"></tab>
+    </view>
+    <scroll-view scroll-y="{{true}}" class="record-lists-box" wx:if="{{products.length > 0}}" bindscrolltolower="lower">
+      <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+        <view class="item">
+          <view class="line">
+            <image src="/images/line.png" class="image"/>
+          </view>
+          <view class="top flex-between">
+            <view class="time">{{item.faceTime}}</view>
+            <view class="status" wx:if="{{item.status === '3' || item.status === '4'}}">已取消</view>
+            <view class="status" wx:else>{{tabList[item.status]}}</view>
+          </view>
+          <view class="middle">
+            <view class="list flex-between">
+              <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/%E6%8D%A2%20%E5%85%A5%403x.png" class="image" />
+              <view class="points">
+                <view class="num">{{item.inTranNum}}<text class="text">积分</text></view>
+                <view class="pointName">{{item.inPointName}}</view>
+              </view>
+            </view>
+            <view class="list flex-between">
+              <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/exchange/%E6%8D%A2%20%E5%87%BA%403x.png" class="image" />
+              <view class="points">
+                <view class="num">{{item.outTranNum}}<text class="text">积分</text></view>
+                <view class="pointName">{{item.outPointName}}</view>
+              </view>
+              <view class="btn" wx:if="{{item.status === '1'}}" @tap="cancelApply({{item}})">取消申请</view>
+            </view>
+          </view>
+          <view class="bottom flex-between">
+            <view class="left">已换入：{{item.reInTranNum? item.reInTranNum:0}}{{item.inPointName}}</view>
+            <view class="right">兑换比例：{{item.exchangeProp}}</view>
+          </view>
+        </view>
+      </repeat>
+    </scroll-view>
+    <!-- 底线 -->
+    <view>
+      <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" position="absolute"/>
+    </view>
+    <view  wx:if="{{ finished && products.length === 0}}">
+      <ProductDefault
+        :src.sync='image'
+        :tips.sync='tips'
+        marginTop='300'
+        marginBottom='60'
+        imgWidth='260'
+        imgHeight='226'
+        color="#333"
+      />
+      <navigator url="/pages/Exchange/apply" hover-class="none"  class="noBtn">
+        马上交换
+      </navigator>
+    </view>
+     <!-- 确认取消模态框 -->
+    <exModal
+      title="取消确认"
+      hidden="{{modalHidden}}"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      confirmText="确认"
+      closeText="取消"
+      height="510"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/2.png"
+    >
+      <view class="modal-content">
+        您确定要取消发布的互换申请吗？
+      </view>
+    </exModal>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import Tab from '@/components/tab';
+import api from '@/api/api';
+import Defalut from '@/components/default';
+import proPage from '@/mixins/proPage';
+import exModal from '@/components/ExModal';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+export default class exchangeRecordList extends wepy.page {
+  config = {
+    navigationBarTitleText: '互换记录',
+    disableScroll: true
+  };
+  components = {
+    tab: Tab,
+    Defalut,
+    exModal,
+    ListBottom,
+    BackHome,
+    ProductDefault
+  };
+  mixins = [proPage];
+  data = {
+    src: 'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E4%BA%A4%E6%8D%A2%E8%AE%B0%E5%BD%95%402x.png',
+    activeTab: 0,
+    tabList: ['全部', '进行中', '已完成', '已取消'],
+    modalHidden: true,
+    status: null,
+    selectPoint: {},
+    imageSrc: [
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E4%BA%A4%E6%8D%A2%E8%AE%B0%E5%BD%95%402x.png',
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E4%BA%A4%E6%8D%A2%E4%B8%AD%E8%AE%B0%E5%BD%95%402x.png',
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E5%B7%B2%E5%AE%8C%E6%88%90%E8%AE%B0%E5%BD%95%402x.png',
+      'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E5%B7%B2%E5%8F%96%E6%B6%88%E8%AE%B0%E5%BD%95%402x.png'
+    ],
+    tipsDefaultList: ['暂无交换记录', '暂无交换中记录', '暂无已完成记录', '暂无已取消记录'],
+    image: 'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E4%BA%A4%E6%8D%A2%E8%AE%B0%E5%BD%95%402x.png',
+    tips: '暂无交换记录'
+  };
+  methods = {
+    getCurrentTab(v) {
+      this.image = this.imageSrc[v];
+      this.tips = this.tipsDefaultList[v];
+      this.$apply();
+      if (v > 0 && v < 3) {
+        this.status = v;
+      } else if (v === 3) {
+        this.status = "'3','4'";
+      } else {
+        this.status = null;
+      }
+      this.proList(1);
+    },
+    // 取消申请
+    cancelApply(item) {
+      this.modalHidden = false;
+      this.selectPoint = item;
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    },
+    async modalConfirm() {
+      let resp = await api.cancelExchange({ method: 'POST', id: this.selectPoint.id });
+      if (resp.data.httpCode === '200') {
+        this.proList(1);
+      }
+      this.modalHidden = true;
+    }
+  };
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      status: this.status // 1、交易中 2、已完成 3已过期
+    };
+    let resp = await api.getMyExchangeList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+  onShow() {
+    this.proList(1);
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.record-list {
+  .image {
+    width: 100%;
+    height: 100%;
+  }
+  width: 750rpx;
+  height: 100vh;
+  .record-lists-box {
+    height: calc(100vh - 120px);
+    margin-top: 30rpx;
+    .item {
+      width: 690rpx;
+      height: 372rpx;
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0px 10rpx 30rpx 0px rgba(130, 136, 202, 0.2);
+      margin: 0 auto;
+      margin-bottom: 30rpx;
+      position: relative;
+      .line {
+        width: 690rpx;
+        position: absolute;
+        top: 50rpx;
+        height: 38rpx;
+      }
+      .top {
+        padding: 0 30rpx;
+        box-sizing: border-box;
+        height: 74rpx;
+        line-height: 74rpx;
+        .time {
+          font-size: 20rpx;
+          color: rgba(153, 153, 153, 1);
+        }
+        .status {
+          font-size: 24rpx;
+          color: rgba(102, 102, 102, 1);
+        }
+      }
+      .middle {
+        width: 630rpx;
+        margin: 0 auto;
+        margin-top: 20rpx;
+        border-bottom: 1px solid #f6f6f6;
+        .list {
+          margin-bottom: 20rpx;
+          .image {
+            width: 30rpx;
+            height: 60rpx;
+            margin-top: 10rpx;
+          }
+          .points {
+            height: 82rpx;
+            flex: 1;
+            margin-left: 32rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            .num {
+              font-size: 32rpx;
+              font-weight: bold;
+              color: rgba(51, 51, 51, 1);
+              .text {
+                font-size: 20rpx;
+                font-weight: 400;
+                margin-left: 5rpx;
+              }
+            }
+            .pointName {
+              font-size: 24rpx;
+              color: rgba(102, 102, 102, 1);
+            }
+          }
+          .btn {
+            width: 106rpx;
+            height: 40rpx;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 4rpx;
+            border: 1px solid rgba(67, 84, 255, 1);
+            text-align: center;
+            line-height: 40rpx;
+            font-size: 20rpx;
+            font-weight: 400;
+            color: rgba(67, 84, 255, 1);
+            margin-top: 40rpx;
+          }
+        }
+      }
+      .bottom {
+        padding: 0 30rpx;
+        box-sizing: border-box;
+        line-height: 72rpx;
+        font-size: 24rpx;
+        .left {
+          color: rgba(102, 102, 102, 1);
+        }
+        .right {
+          color: rgba(102, 102, 102, 1);
+        }
+      }
+    }
+  }
+}
+</style>

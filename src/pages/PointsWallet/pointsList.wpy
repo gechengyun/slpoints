@@ -1,0 +1,306 @@
+<template lang="wxml">
+  <view class="pointsList">
+    <BackHome bottom="20"/>
+    <view class="top flex-between">
+      <view class="item left {{activeTab === '1'?'active':''}}" @tap="tabClick(1)">
+          {{tabTitle1}}
+          <image src="/images/up1.png" class="icon"  wx:if="{{activeTab === '1'}}"/>
+          <image src="/images/down1.png" class="icon" wx:else/>
+      </view>
+      <view class="item right {{activeTab === '2'?'active':''}}"  @tap="tabClick(2)">
+         {{tabTitle2}}
+        <image src="/images/up1.png" class="icon"  wx:if="{{activeTab === '2'}}"/>
+        <image src="/images/down1.png" class="icon" wx:else/>
+      </view>
+    </view>
+    <view class="wrap" wx:if="{{ products.length > 0}}">
+      <repeat for="{{products}}" wx:key="index" index="index" item="item" >
+        <view class="item flex-between">
+          <view class="logo">
+            <image class="image" src="{{item.pointLogo}}" />
+          </view>
+          <view class="name">
+            <view class="pointName flex-between">
+              <view class="ellipsis">{{item.pointName}}</view>
+              <view class="tranNum {{item.optType==='1'?'':'tranNumActive'}}">{{item.optType==='1'?'+':'-'}}{{item.tranNum}}</view>
+              <view class="{{item.optType==='1'?'':'tranNumActive'}}"> 积分</view>
+            </view>
+            <view class="entName flex-between">
+              <view wx:if="{{item.tranType === '3'}}">换出积分</view>
+              <view wx:if="{{item.tranType === '4'}}">换入积分</view>
+              <view wx:else>{{useTypeList[item.useType]}}</view>
+              <view class="time">{{item.tranTime}}</view>
+            </view>
+          </view>
+        </view>
+      </repeat>
+    </view>
+    <!-- 底线 -->
+    <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" />
+    <view  wx:if="{{ finished && products.length === 0}}">
+      <ProductDefault
+        src='https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/default/%E6%9A%82%E6%97%A0%E7%A7%AF%E5%88%86%E6%98%8E%E7%BB%86%402x.png'
+        tips='暂无积分明细'
+        marginTop='300'
+        marginBottom='60'
+        imgWidth='202'
+        imgHeight='192'
+        color="#333"
+      />
+      <navigator url="/pages/PointsWallet/index" hover-class="none" class="noBtn">
+        导入积分
+      </navigator>
+    </view>
+     <!-- 顶部筛选 -->
+    <view class="modal1" catchtouchmove='true'>
+      <view class="over_modal {{hidden?'hidden':''}}" @tap.stop="closeModal"></view>
+      <view
+        class="panle_modal {{hidden?'hidden':''}}"
+        animation="{{animationData}}"
+      >
+        <view class="modal_content">
+          <view class="modal_content_son">
+            <scroll-view scroll-y="true" class="enterprise">
+               <repeat for="{{pointTypeList}}" wx:key="item.id" index="index" item="item" wx:if="{{activeTab === '1'}}">
+                <view class="item" @tap="handleClick({{item}})">
+                  {{item.pointName}}
+                </view>
+              </repeat>
+              <repeat for="{{tabList}}" wx:key="item.id" index="index" item="item" wx:if="{{activeTab === '2'}}">
+                <view class="item" @tap.stop="handleClickType({{item}})">
+                  {{item.name}}
+                </view>
+              </repeat>
+            </scroll-view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 顶部筛选结束 -->
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/api';
+import ListBottom from '@/components/listBottom';
+import topModalMixin from '@/mixins/topModal';
+import proPage from '@/mixins/proPage';
+import BackHome from '@/components/backHome';
+import ProductDefault from '@/components/default/product';
+export default class PointsList extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分明细'
+  };
+  data = {
+    tabTitle1: '全部积分',
+    tabTitle2: '全部交易类型',
+    activeTab: 0,
+    pointTypeList: [],
+    useTypeList: ['', '商品兑换', '积分夺宝', '', '积分导入', '积分过期'],
+    tabList: [{id: null, name: '全部交易积分'}, {id: '1', name: '商品兑换'}, {id: '2', name: '积分夺宝'}, {id: '4', name: '积分导入'}, {id: '5', name: '积分过期'}, {id: '6', name: '换出积分'}, {id: '7', name: '换入积分'}],
+    useType: null,
+    tranType: null
+  }
+  mixins = [proPage, topModalMixin];
+  components={
+    ListBottom,
+    BackHome,
+    ProductDefault
+  }
+  onShow() {
+    this.createAnimation();
+    this.getpointType();
+    this.proList(1);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.proList();
+      this.$apply();
+    }
+  }
+  // 获取积分类型
+  async getpointType() {
+    let resp = await api.getPointTypeList({ method: 'POST' });
+    if (resp.data.httpCode === '200') {
+      let result = resp.data.data;
+      this.pointTypeList = result;
+      this.pointTypeList.unshift({id: null, pointName: '全部积分'});
+      this.$apply();
+    }
+  }
+  methods = {
+    tabClick(v) {
+      this.activeTab = v;
+      this.openModalSon(620);
+    },
+    handleClick(item) {
+      this.tabTitle1 = item.pointName;
+      this.pointCode = item.pointCode;
+      this.$apply();
+      this.closeModalSon();
+      this.proList(1);
+    },
+    handleClickType(item) {
+      this.tabTitle2 = item.name;
+      if (item.id === '6') {
+        this.tranType = '3';
+        this.useType = null;
+      } else if (item.id === '7') {
+        this.tranType = '4';
+        this.useType = null;
+      } else {
+        this.tranType = null;
+        this.useType = item.id;
+      }
+      this.$apply();
+      this.closeModalSon();
+      this.proList(1);
+    }
+  }
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      pointCode: this.pointCode,
+      useType: this.useType, // 1、商品兑换2、夺宝兑换3、积分兑换4、充值5、积分过期
+      tranType: this.tranType  // 1、转账2、消耗3、换出4、换入5、手续费
+    };
+    let resp = await api.getPointList({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+}
+</script>
+
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/topModal';
+.pointsList {
+  position: relative;
+  .top {
+    width: 750rpx;
+    height:100rpx;
+    position: fixed;
+    top:0rpx;
+    background: #fff;
+    .item {
+      width:300rpx;
+      height:80rpx;
+      background:rgba(246,246,246,1);
+      border-radius:40rpx;
+      font-size:32rpx;
+      color:rgba(51,51,51,1);
+      line-height: 80rpx;
+      text-align: center;
+      margin-top: 10rpx;
+      .ellipsis();
+      .icon {
+        width:24rpx;
+        height:16rpx;
+      }
+    }
+    .left {
+      margin-left: 50rpx;
+
+    }
+    .right {
+      margin-right: 50rpx;
+    }
+    .active {
+      border:1px solid rgba(67,84,255,1);
+      color:rgba(67,84,255,1);
+    }
+  }
+  .wrap {
+    width:690rpx;
+    margin: 0 auto;
+    margin-top: 130rpx;
+    .item {
+      height:160rpx;
+      background:rgba(255,255,255,1);
+      box-shadow:0rpx 10rpx 30rpx 0px rgba(130,136,202,0.2);
+      border-radius:10rpx;
+      padding: 30rpx;
+      box-sizing: border-box;
+      margin-bottom: 30rpx;
+      .logo {
+        width:100rpx;
+        height: 100rpx;
+        border:2px solid rgba(216,216,216,1);
+        border-radius: 50rpx;
+        .image {
+          border-radius: 50rpx;
+        }
+      }
+      .name {
+        margin-left:20rpx;
+        flex:1;
+        .pointName {
+          font-size:32rpx;
+          font-weight:600;
+          color:rgba(3,3,3,1);
+          line-height: 40rpx;
+          .tranNumActive {
+            color:red!important;
+          }
+          :nth-child(1) {
+            flex:1;
+            width:300rpx;
+            font-size:32rpx;
+            .ellipsis()
+          }
+          :nth-child(2) {
+            width:150rpx;
+            font-size:40rpx;
+            color:rgba(67,84,255,1);
+            text-align: right;
+            .ellipsis()
+          }
+          :nth-child(3) {
+            font-size:20rpx;
+            font-weight:400;
+            color:rgba(67,84,255,1);
+            margin-left: 5rpx;
+          }
+        }
+        .entName {
+          font-size:28rpx;
+          font-weight:400;
+          line-height: 30rpx;
+          color:rgba(102,102,102,1);
+          margin-top: 20rpx;
+          .time {
+            font-size:24rpx;
+            font-weight:400;
+            color:rgba(153,153,153,1);
+          }
+        }
+      }
+    }
+  }
+  // 顶部弹框样式
+  .enterprise {
+    max-height: 622rpx;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    margin: 10rpx 30rpx 0 30rpx;
+    .item {
+      width: 690rpx;
+      height: 98rpx;
+      line-height: 118rpx;
+      border-bottom: 1px solid #F6F6F6;
+      color:rgba(51,51,51,1);
+    }
+  }
+}
+
+</style>

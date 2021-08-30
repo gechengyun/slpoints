@@ -1,0 +1,50 @@
+<template lang="wxml">
+  <view class="webView">
+    <web-view src="{{url}}"></web-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class webView extends wepy.page {
+  config = {
+    navigationBarTitleText: '外部链接'
+  }
+  data = {
+    url: '',
+    disabled: false
+  }
+  onLoad(option) {
+    this.url = option.url;
+  }
+  // 点击slider时调用
+  sliderTap = function (e) {
+    console.log('sliderTap');
+  }
+  // 开始滑动时
+  sliderStar = function (e) {
+    console.log('sliderStart');
+  }
+  // 正在滑动
+  sliderChange = function (e) {
+    console.log('sliderChange');
+  }
+  // 滑动结束
+  sliderEnd = function (e) {
+    console.log('sliderEnd');
+  }
+  // 滑动取消 （左滑时滑到上一页面或电话等情况）
+  sliderCancel= function (e) {
+    console.log('sliderCancel');
+  }
+}
+</script>
+<style lang='less' scoped>
+.slider_bg {
+  width: 100%;
+  height: 100rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+</style>

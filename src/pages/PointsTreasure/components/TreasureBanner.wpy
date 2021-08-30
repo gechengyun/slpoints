@@ -1,0 +1,106 @@
+<template lang="wxml">
+  <view class="treasureBanner">
+    <view wx:if="{{banner.length > 0}}">
+      <swiper indicator-dots="{{false}}"
+        class="swiper"
+        autoplay="true" 
+        interval="{{banner[0].speed*1000}}" 
+        duration="{{duration}}" 
+        circular="true" 
+        current="{{currentSwiper}}" 
+        bindchange="bindchange">
+        <repeat for="{{banner}}" wx:key="index" index="index" item="item" >
+          <swiper-item class="item">
+            <image src="{{item.picture}}" class="image"  @tap="swich({{item}})"/>
+          </swiper-item>
+        </repeat>
+      </swiper>
+      <view class="banner-bottom" style="">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%BD%A2%E7%8A%B6%E7%BB%93%E5%90%88%402x.png" class="image"/>
+      </view>
+      <view class="dots">
+        <repeat for="{{banner}}" wx:key="index" index="index" item="item" >
+          <view class="{{index == current ? 'active' : 'dot'}}" style="right: {{5*index}}px"></view>
+        </repeat>
+      </view>
+    </view>
+    <navigator url="/pages/PointsTreasure/treasureRule" hover-class="none"  class="ruleIcon">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/%E5%A4%BA%20%E5%AE%9D%20%E8%A7%84%20%E5%88%99%403x.png" class="image"/>
+    </navigator>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class TreasureBanner extends wepy.component {
+  data = {
+    duration: 500,
+    currentSwiper: 0,
+    current: 0
+  }
+  props = {
+    banner: {
+      type: Array
+    }
+  }
+  methods={
+    bindchange(e) {
+      this.current = e.detail.current;
+    },
+    swich(item) {
+      this.$emit('jump', item);
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.treasureBanner {
+  width: 100%;
+  position: relative;
+  .ruleIcon {
+    width: 48rpx;
+    height: 144rpx;
+    position: absolute;
+    right: 0;
+    top:200rpx;
+    z-index: 1;
+  }
+  .swiper {
+    height: 400rpx;
+  }
+  .banner-bottom {
+    position: absolute;
+    top:370rpx;
+    width:750rpx;
+    height:36rpx;
+  }
+  .dots {
+    width: 100%;
+    height: 20rpx;
+    margin: 0 auto;
+    margin-top: 10rpx;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    /*未选中时的小圆点样式 */
+    .dot {
+      border-radius: 50%;
+      width: 6rpx;
+      height: 6rpx;
+      background: rgba(32, 172, 204, 1);
+      border-radius: 3px;
+      margin-right: 10rpx;
+      margin-top: 4rpx;
+    }
+    /*选中以后的小圆点样式 */
+    .active {
+      width: 6rpx;
+      height: 14rpx;
+      background: rgba(84, 246, 255, 1);
+      border-radius: 3rpx;
+      margin-right: 10rpx;
+    }
+  }
+}
+</style>

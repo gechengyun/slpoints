@@ -1,0 +1,141 @@
+<template>
+  <view
+    class="points-item"
+    @tap="pointsTap('{{item.id}}')"
+  >
+    <view class="img">
+      <view class="title">
+        {{item.pointName}}
+      </view>
+      <view class="proImg">
+        <image
+          class="image"
+          src="{{item.picture}}"
+        />
+      </view>
+    </view>
+    <view class="desc">
+      <view class="name">{{item.productName}}</view>
+      <view class="points">
+        <view class="num">{{item.salePoints}}</view>
+        <view class="jf"> 积分</view> 
+        <view class="numDel">{{item.marketSalePoints}}积分</view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class PreProduct extends wepy.component {
+  props = {
+    item: {},
+    hostListLenght: {}
+  }
+  data = {
+  }
+  methods = {
+    pointsTap(id) {
+      wx.navigateTo({
+        url: '/package_saleProDetail/pages/Detail/index?id=' + id
+      });
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../../styles/mixins';
+@import '../../../styles/variables';
+.points-item {
+  width: 300rpx;
+  height: 392rpx;
+  margin-right: 20rpx;
+  position: relative;
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 10rpx;
+  background: #5f6287;
+  background-clip: padding-box;
+  /* just to show box-shadow still works fine */ 
+  &:after {
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+    background: linear-gradient(
+      315deg,
+      rgba(67, 84, 255, 1),
+      rgba(91, 253, 255, 1)
+    );
+    content: '';
+    z-index: -1;
+    border-radius: 10rpx;
+  }
+  .img {
+    position: relative;
+    .proImg {
+      height: 280rpx;
+      width: 100%;
+      .image {
+        border-top-left-radius: 10rpx;
+        border-top-right-radius: 10rpx;
+      }
+    }
+    .title {
+      border-top-left-radius: 10rpx;
+      width: 208rpx;
+      position: absolute;
+      top: -1rpx;
+      left: -1rpx;
+      height: 50rpx;
+      background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/titleBgi.png')
+        no-repeat;
+      background-size: cover;
+      background-position: right 0;
+      color: @white-color;
+      line-height: 34rpx;
+      font-size: 24rpx;
+      text-align: center;
+      .ellipsis();
+      padding: 5rpx 32rpx 0 12rpx;
+      box-sizing: border-box;
+    }
+  }
+  .desc {
+    padding: 10rpx;
+    .name {
+      font-size: 24rpx;
+      color: @white-color;
+      .ellipsis();
+    }
+    .points {
+      color: rgba(188, 188, 188, 1);
+      margin-top: 10rpx;
+      display: flex;
+      flex-wrap: nowrap;
+      .ellipsis();
+      .num {
+        color: @primary-color;
+        font-size: 32rpx;
+        font-weight: bold;
+      }
+      .jf {
+        color: @primary-color;
+        font-size: 20rpx;
+        line-height: 32rpx;
+        margin-top: 5rpx;
+        padding-left: 5rpx;
+      }
+      .numDel {
+        font-size: 16rpx;
+        font-weight: 300;
+        color: rgba(188, 188, 188, 1);
+        text-decoration:line-through;
+        padding-left: 10rpx;
+        line-height: 32rpx;
+        margin-top: 5rpx;
+      }
+    }
+  }
+}
+</style>

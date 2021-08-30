@@ -1,0 +1,605 @@
+<template lang="wxml">
+  <view class="home">
+    <navigator url="/pages/Help/index" hover-class="none"  class="help">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/help1.png" class="image" />
+    </navigator>
+    <!-- banner1 -->
+    <scroll-view class="banner-wrap" style="height:{{20*(bannerList.length-1)+350}}rpx" wx:if="{{bannerList.length>0}}">
+      <view class="banner">
+        <repeat for="{{bannerList}}" key="index" index="index" item="item" >
+          <view class="banner-top"
+          animation="{{ani[index]}}"
+          data-id="{{index}}"
+          @touchstart="touchstart"
+          @touchend="touchend"
+          style="width:{{styleList[index].width}}rpx;left:{{styleList[index].left}}rpx;top:{{styleList[index].top}}rpx;z-index:{{styleList[index].zIndex}};animation:{{styleList[index].animation}}">
+            <view style="height:100%;width:100%;position:absolute;background: rgba(0, 0, 0, 0.5);border-radius: 20rpx;z-index:{{styleList[index].zIndex1}}"/>
+            <image src="{{item.picture}}" class="image" @tap.stop="bannerCallback('{{item}}')"/>
+          </view>
+        </repeat>
+      </view>
+      <!-- <view class="banner-swiper page-section page-section-spacing swiper">
+        <view class="one" />
+        <view class="two" />
+        <swiper indicator-dots="{{indicatorDots}}"
+          class="three"
+          vertical="{{true}}"
+          circular="{{true}}"
+          autoplay="{{true}}" interval="{{bannerList[0].speed * 1000}}" duration="{{500}}" style="height:320rpx;">
+          <block wx:for="{{bannerList}}" wx:key="*this">
+            <swiper-item>
+              <view class="banner-top">
+                <image src="{{item.picture}}" class="image" @tap.stop="bannerCallback('{{item}}')"/>
+              </view>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view> -->
+      <view class="dots">
+        <repeat for="{{bannerList}}" key="index" index="index" item="item" >
+          <view class="dot{{index == activeDots ? ' active' : ''}}"></view>
+        </repeat>
+      </view>
+    </scroll-view>
+    <!-- 导航 -->
+    <Nav />
+    <!-- 广告位 -->
+    <Advertisement :banner.sync="banner" @jump.user="banner1Jump"/>
+    <!-- 热门互换 -->
+    <navigator url="/pages/Exchange/index" hover-class="none"  class="hotExchange" open-type="switchTab" wx:if="{{text.length > 0}}">
+      <scroll-view class="container" wx:if="{{text.length > 0}}">
+        <view class="scrolltxt">
+          <view class="marquee_box">
+          <view class="marquee_text" style="transform: translateX(-{{marqueeDistance}}px)">
+            <text>{{text}}</text>
+            <text style="margin-right:{{marquee_margin}}px;"></text>
+            <text>{{text}}</text>
+          </view>
+          </view>
+        </view>
+      </scroll-view>
+    </navigator>
+    <!-- 积分夺宝 -->
+    <TemplateIndex wx:if="{{templateList.length > 0}}" :tplData.sync='templateList' />
+    <!-- 积分特惠 -->
+    <view class="pointPreferential" wx:if="{{preProducts.length > 0}}">
+      <!-- 背景图片 -->
+      <image class="bgi" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/bgi.png" />
+      <view class="title">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/jfthTitle.png" class="image"/>
+      </view>
+      <scroll-view class="preferentialProduct" scroll-x="true">
+        <repeat for="{{preProducts}}" wx:key="item.id" index="index" item="item">
+          <PreProduct :item='item'  @pointsTap.user="pointsCallback"/>
+        </repeat>
+       </scroll-view>
+    </view>
+    <!-- 热门礼品推荐 -->
+    <view class="hotPro" wx:if="{{products.length > 0}}">
+      <view class="title">
+        <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/hotTitle.png" class="image"/>
+      </view>
+      <view class="hot">
+        <repeat for="{{products}}" wx:key="item.id" index="index" item="item">
+          <ProItem :item='item'/>
+        </repeat>
+        <!-- 底线 -->
+        <ListBottom wx:if="{{ finished && page.pageNum === totalPages}}" marginTop="58" height="120"/>
+      </view>
+    </view>
+    <!--弹屏  show 是否显示  @close 关闭回调  @callback 点击图片回调 或确定回调-->
+    <Bombscreen :popList.sync="popList" :show.sync="is_show_alert" @callback.user="alertCallback"></Bombscreen>
+    <Bottom src='/images/tabIcon/homed.png'/>
+  </view>
+</template>
+<script>
+// 页面制作日期：2019-11-18
+import wepy from 'wepy';
+import api1 from '@/api/api';
+import api from '@/api/EdaApi';
+import Nav from './components/Nav';
+import Advertisement from './components/Advertisement';
+import PreProduct from './components/PreProduct';
+import TemplateIndex from './components/PointTreasure/TemplateIndex';
+import ProItem from '@/components/proItem';
+import proPage from '@/mixins/proPage';
+import bannerJump from '@/mixins/bannerJump';
+import ListBottom from '@/components/listBottom';
+import Bottom from '@/components/bottom';
+import Bombscreen from './components/bombScreen';
+let touchDotX = 0; // X按下时坐标
+let touchDotY = 0; // y按下时坐标
+export default class Home extends wepy.page {
+  config = {
+    navigationBarTitleText: '首选兑',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    Nav,
+    Advertisement,
+    PreProduct,
+    TemplateIndex,
+    ProItem,
+    ListBottom,
+    Bombscreen,
+    Bottom
+  }
+  mixins = [proPage, bannerJump];
+  data = {
+    // banner
+    bannerList: [],
+    animation: '',
+    ani: [],
+    currentSwiper: 0,
+    activeDots: 0,
+    styleList: [],
+    styleListBak: [],
+    interval: '',
+    // 通知
+    text: '　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　      　　　　　　　　　　',
+    marqueePace: 1, // 滚动速度
+    marqueeDistance: 0, // 初始滚动距离
+    marquee_margin: 30,
+    size: 14,
+    // 模板数据
+    templateList: [],
+    // 积分特惠
+    preProducts: [],
+    intervalWord: '',
+    popList: [], // 弹屏跳转
+    // 广告弹屏
+    is_show_alert: false
+  }
+  onLoad() {
+    // this.popLists();
+    if (this.$parent.globalData.is_show_alert === true) {
+      this.popLists();
+    }
+  }
+  onHide() {
+    clearInterval(this.interval);
+    clearInterval(this.intervalWord);
+    this.interval = '';
+    this.animation = '';
+    this.$parent.globalData.is_show_alert = false;
+  }
+  onShow() {
+    this.scrolltxt();// 第一个字消失后立即从右边出现
+    this.getMarketTemplateList();
+    this.getWaitExchangeList();
+    this.text = '　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　      　　　　　　　　　　';
+    this.animation = '';
+    this.ani = [];
+    this.currentSwiper = 0;
+    this.activeDots = 0;
+    this.interval = '';
+    this.styleList = []; // 还原初始数据
+    this.bannerList = [];
+    this.preProductList();
+    this.proList(1);
+    this.getBanner(0);
+    this.getBanner(1);
+    setTimeout(() => {
+      if (this.bannerList.length > 1) {
+        this.interval = setInterval(() => {
+          this.Animation();
+          this.currentSwiper < this.bannerList.length - 1 ? this.currentSwiper++ : this.currentSwiper = 0;
+          this.activeDots = this.currentSwiper;
+        }, this.bannerList[0].speed * 1000);
+      }
+    }, 500);
+  }
+  // 触底加载
+  onReachBottom() {
+    if (this.page.pageNum < this.totalPages) {
+      this.page.pageNum++;
+      this.proList();
+    }
+  }
+  // 文字滚动
+  scrolltxt = () => {
+    this.length = this.text.length * this.size;// 滚动文字的宽度
+    this.windowWidth = wx.getSystemInfoSync().windowWidth;// 屏幕宽度
+    if (this.length > this.windowWidth) {
+      this.intervalWord = setInterval(() => {
+        let maxscrollwidth = this.length + this.marquee_margin;// 滚动的最大宽度，文字宽度+间距，如果需要一行文字滚完后再显示第二行可以修改marquee_margin值等于windowWidth即可
+        let crentleft = this.marqueeDistance;
+        if (crentleft < maxscrollwidth) {
+          // 判断是否滚动到最大宽度
+          this.marqueeDistance = crentleft + this.marqueePace;
+          this.$apply();
+        } else {
+          // console.log("替换");
+          this.marqueeDistance = 0;
+          this.$apply();
+          clearInterval(this.intervalWord);
+          this.scrolltxt();
+        }
+      }, 50);
+    } else {
+      this.marquee_margin = '10';
+      this.$apply();// 只显示一条不滚动右边间距加大，防止重复显示
+    }
+  }
+  // 弹屏列表
+  async popLists() {
+    this.popList = [];
+    let query = {
+      bannerType: '1',
+      enable: 1,
+      page: {
+        pageNum: '1',
+        pageSize: '5'
+      }
+    };
+    let res = await api.popList({ method: 'POST', query: query });
+    if (res.data.httpCode === '200') {
+      this.popList = res.data.data;
+      if (this.popList.length > 0) {
+        this.is_show_alert = true;
+      }
+      this.$apply();
+    }
+  }
+  // 热门互换
+  async getWaitExchangeList() {
+    let query = {
+      page: {
+        pageNum: 1,
+        pageSize: 5
+      }
+    };
+    let resp = await api1.getWaitExchangeList({ method: 'POST', query: query });
+    // 处理数据
+    if (resp.data.httpCode === '200') {
+      let records = resp.data.data.records;
+      let words = [];
+      records.map((value) => {
+        words.push(value.outTranNum + value.outPointName + '需要交换' + value.inTranNum + value.inPointName);
+      });
+      this.words = words;
+      for (let i = 0; i <= 5; i++) {
+        words = words.concat(words);
+      };
+      this.text = words.join(' ');
+      this.$apply();
+    }
+  }
+  // 模板接口
+  async getMarketTemplateList() {
+    let query = {
+      page: {
+        pageNum: 1,
+        pageSize: 99999
+      }
+    };
+    let resp = await api.marketTemplateList({ method: 'POST', query: query });
+    // 处理数据
+    if (resp.data.httpCode === '200') {
+      this.templateList = resp.data.data;
+      this.$apply();
+    }
+  }
+  methods = {
+    // banner1跳转
+    banner1Jump (item) {
+      this.bannerCallback(item);
+    },
+     // 弹框跳转
+    alertCallback(item) {
+      this.is_show_alert = false;
+      this.bannerCallback(item);
+    },
+    // 触屏
+    touchstart: function (event) {
+      touchDotX = event.touches[0].pageX; // 获取触摸时的原点
+      touchDotY = event.touches[0].pageY;
+    },
+    touchend: function (event) {
+      let id = event.currentTarget.dataset.id;
+      // 手指离开屏幕时记录的坐标
+      let touchMoveX = event.changedTouches[0].pageX;
+      let touchMoveY = event.changedTouches[0].pageY;
+      // 起始点的坐标(x0,y0)和手指离开时的坐标(x1,y1)之差
+      let tmX = touchMoveX - touchDotX;
+      let tmY = touchMoveY - touchDotY;
+      // 两点横纵坐标差的绝对值
+      let absX = Math.abs(tmX);
+      let absY = Math.abs(tmY);
+      // 起始点的坐标(x0,y0)和手指离开时的坐标(x1,y1)之间的距离
+      let delta = Math.sqrt(absX * absX + absY * absY);
+      // 如果delta超过60px（可以视情况自己微调）,判定为手势触发
+      if (delta >= 60) {
+        // 如果 |x0-x1|>|y0-y1|,即absX>abxY,判定为左右滑动
+        if (absX < absY) {
+          if (tmY < 0) {
+            console.log('上滑动=====');
+          } else {
+            if (this.bannerList.length <= 1) {
+              return false;
+            }
+            // 清除定时器
+            clearInterval(this.interval);
+            id === this.bannerList.length - 1 ? this.activeDots = 0 : this.activeDots = id + 1;
+            this.currentSwiper = id;
+            this.Animation();
+            // 启动定时器
+            this.interval = setInterval(() => {
+              this.currentSwiper < this.bannerList.length - 1 ? this.currentSwiper++ : this.currentSwiper = 0;
+              this.activeDots < this.bannerList.length - 1 ? this.activeDots++ : this.activeDots = 0;
+              this.Animation();
+            }, this.bannerList[0].speed * 1000);
+            console.log('下滑动=====');
+          }
+        }
+      } else {
+        console.log('手势未触发=====');
+      }
+    }
+  }
+  // 处理banner
+  handleResponseBanner() {
+    if (this.bannerList.length > 0) {
+      this.bannerList.map((item, index) => {
+        this.styleList.push({
+          width: 698 - index * 68,
+          left: (750 - (698 - index * 68)) / 2,
+          top: 20 * (this.bannerList.length) - 20 * index,
+          zIndex: -index,
+          zIndex1: 2
+        });
+      });
+      this.styleList[0].zIndex1 = -3;
+      this.styleListBak = [...this.styleList];
+      this.$apply();
+    }
+  }
+  // 动画
+  Animation = function () {
+    var animation = wx.createAnimation({
+      duration: 680,
+      timingFunction: 'ease'
+    });
+    this.animation = animation;
+    this.animation.translateY(40).rotate(0).translateX(0).opacity(0).step();
+    this.animation.translateY(0).translateX(0).opacity(1).rotate(0).step({
+      duration: 10
+    });
+    this.ani = [];
+    this.ani[this.currentSwiper] = this.animation.export();
+    this.setData({
+      ani: this.ani
+    });
+    setTimeout(() => {
+      let styleList = [];
+      styleList = this.styleList.pop();
+      this.styleList.unshift(styleList);
+      this.$apply();
+    }, 500);
+  };
+  // 积分特惠列表
+  async preProductList() {
+    let query = {
+      page: { pageNum: 1, pageSize: 5 },
+      productType: 2,
+      searchType: 7
+    };
+    let resp = await api.productPage({ method: 'POST', query: query });
+    if (resp.data.httpCode === '200') {
+      wx.hideNavigationBarLoading();
+      this.preProducts = resp.data.data.records;
+      this.$apply();
+    }
+  }
+  // 热门礼品
+  async proList(flag) {
+    if (flag === 1) {
+      this.page.pageNum = 1;
+      this.products = [];
+      this.loading = true;
+      this.finished = false;
+    }
+    let query = {
+      page: this.page,
+      productType: 1,
+      searchType: 6
+    };
+    let resp = await api.productPage({ method: 'POST', query: query });
+    // 处理数据
+    this.handleResponse(resp);
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.home {
+  // 帮助小助手
+  .help {
+    width:120rpx;
+    height:120rpx;
+    position:fixed;
+    right: 10rpx;
+    bottom: 350rpx;
+    z-index:999;
+  }
+  .banner-wrap {
+    position: relative;
+    .banner-swiper {
+      position: absolute;
+      width:690rpx;
+      right:30rpx;
+      border-radius:20rpx;
+      .one {
+        position: absolute;
+        width:550rpx;
+        height:20rpx;
+        background:rgba(57,88,174,0.3);
+        border-top-left-radius:20rpx;
+        border-top-right-radius:20rpx;
+        left:70rpx;
+        top:0;
+      }
+      .two {
+        top:20rpx;
+        position: absolute;
+        width:630rpx;
+        height:20rpx;
+        background:rgba(61,96,191,0.45);
+        border-top-left-radius:20rpx;
+        border-top-right-radius:20rpx;
+        left:30rpx;
+      }
+      .three {
+        top:40rpx;
+        position: absolute;
+        height:320rpx;
+        width:690rpx;
+        border-radius:20rpx;
+        .banner-top {
+          border: 1px solid;
+          width:690rpx;
+          border-radius:20rpx;
+          .image {
+            height:320rpx;
+            border-radius:20rpx;
+          }
+        }
+      }
+ 
+    }
+    .banner {
+      .banner-top {
+        position: absolute;
+        height: 332rpx;
+        background: rgba(61, 96, 191, 0.45);
+        box-shadow: 0rpx -10rpx 20rpx 0rpx rgba(0, 20, 55, 0.3);
+        border-radius: 20rpx;
+        .image {
+          border-radius: 20rpx;
+        }
+        .opacity {
+          opacity: 0.5;
+        }
+      }
+    }
+    .dots {
+      width: 20rpx;
+      position: absolute;
+      height: 330rpx;
+      right: 5rpx;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /*未选中时的小圆点样式 */
+      .dot {
+        border-radius: 50%;
+        width: 6rpx;
+        height: 6rpx;
+        background: rgba(32, 172, 204, 1);
+        border-radius: 3px;
+        margin: 0 auto;
+        margin-bottom: 12rpx;
+      }
+      /*选中以后的小圆点样式 */
+      .active {
+        width: 14rpx;
+        height: 6rpx;
+        background: rgba(84, 246, 255, 1);
+        border-radius: 3rpx;
+        left: 0rpx !important;
+      }
+    }
+  }
+  .hotExchange {
+    width: 694rpx;
+    height: 86rpx;
+    margin: 0 auto;
+    margin-top: 40rpx;
+    background: url('https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/home/HomeHot.png')
+      no-repeat center;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -o-background-size: cover;
+    background-position: center 0;
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      .scrolltxt {
+        padding: 0 20rpx 0 170rpx;
+        .marquee_box {
+          position: relative;
+          height: 90rpx;
+          display: block;
+          overflow: hidden;
+          .marquee_text {
+            white-space: nowrap;
+            position: absolute;
+            top: 0;
+            font-size: 24rpx;
+            height: 90rpx;
+            line-height: 90rpx;
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+  .pointPreferential {
+    position: relative;
+    .bgi {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+    .title {
+      height: 102rpx;
+      width: 180rpx;
+      margin-top: 20rpx;
+    }
+    .preferentialProduct {
+      padding-left: 40rpx;
+      white-space: nowrap;
+      box-sizing: border-box;
+    }
+  }
+  .pointTreasure {
+    .header {
+      .title {
+        width:180rpx;
+        height: 96rpx;
+        margin-top: 20rpx;
+      }
+      .more {
+        font-size:24rpx;
+        color:rgba(59,216,255,1);
+        margin-top:50rpx;
+        margin-right: 30rpx;
+        .arrow {
+          width:18rpx;
+          height:16rpx;
+        }
+      }
+    }
+  }
+  .hotPro {
+    margin-top:22rpx;
+    .title {
+      height: 110rpx;
+      width: 222rpx;
+    }
+  }
+}
+</style>

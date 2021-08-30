@@ -1,0 +1,79 @@
+<template lang="wxml">
+  <view class="help">
+    <BackHome bottom="50" flag="1"/>
+    <navigator url="/pages/Help/pointImport" hover-class="none"  class="item">
+      积分导入助手
+    </navigator>
+    <navigator url="/pages/Help/searchPoint" hover-class="none"  class="item">
+      积分查询助手
+    </navigator>
+    <navigator url="/pages/Help/pointTreasure" hover-class="none"  class="item">
+      积分夺宝助手
+    </navigator>
+    <navigator url="/pages/Help/product" hover-class="none"  class="item">
+      积分兑换助手
+    </navigator>
+    <navigator url="/pages/Help/makePoints" hover-class="none"  class="item">
+      赚积分
+    </navigator>
+    <navigator url="/pages/Me/helpCenter" hover-class="none"  class="item">
+      其他问题
+    </navigator>
+    <ListBottom position='absolute' />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import BackHome from '@/components/backHome';
+import ListBottom from '@/components/listBottom';
+export default class Help extends wepy.page {
+  config = {
+    navigationBarTitleText: '专属小助手',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    BackHome,
+    ListBottom
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.help {
+  .item {
+    float: left;
+    width:312rpx;
+    height:250rpx;
+    background: url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/bg2.png")no-repeat center;
+    background-size: cover;
+    margin-left:40rpx;
+    margin-top: 40rpx;
+    text-align: center;
+    line-height: 250rpx;
+    font-size:40rpx;
+    font-weight:500;
+    color:rgba(60,196,235,1);
+  }
+  :nth-child(2),:nth-child(6) {
+    background: url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/bg1.png")no-repeat center;
+    background-size: cover;
+  }
+  :nth-child(3) {
+    background: url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/bg3.png")no-repeat center;
+    background-size: cover;
+  }
+  :nth-child(4) {
+    background: url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/bg4.png")no-repeat center;
+    background-size: cover;
+  }
+}
+</style>

@@ -1,0 +1,142 @@
+<template lang="wxml">
+  <view class="product">
+    <view class="title">
+      <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/title4.png" class="image" />
+    </view>
+    <view class="warp">
+        <view class="word">
+          1·在积分商城中选择您喜欢的商品,点击“<text class="blue">立即兑换</text>”
+        </view>
+        <view class="second-word">积分商城>立即兑换</view>
+        <view class="image1">
+            <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4-1.png" class="image" />
+        </view>
+        <view class="line"/>
+        <view class="word">
+          2·在确认兑换商品前请注意商品的"<text class="blue">兑换须知</text>"，具体有哪些门店可进行商品兑换
+        </view>
+        <view class="second-word">商品详情页>兑换须知</view>
+        <view class="image2">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4-2.png" class="image" />
+        </view>
+        <view class="second-word">商品详情页>立即兑换</view>
+        <view class="image3">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4-3.png" class="image" />
+        </view>
+        <view class="line"/>
+        <view class="word">
+          3· 确认您要兑换的商品数量，之后点击"<text class="blue">去兑换</text>"
+        </view>
+        <view class="second-word">确认数量>确认兑换</view>
+        <view class="image4">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4-4.png" class="image" />
+        </view>
+        <view class="line"/>
+        <view class="word">
+          4· 在这里您可以自由使用您所持有的积分，之后点击“<text class="blue">立即兑换</text>”即可。
+        </view>
+        <view class="second-word">使用积分>立即兑换</view>
+        <view class="image5">
+          <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/help/4-5.png" class="image" />
+        </view>
+    </view>
+    <navigator url="/pages/Mall/index" hover-class="none"  class="btn" open-type="switchTab">去兑换</navigator>
+    <ListBottom marinTop="50" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+export default class HelpProduct extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分兑换助手',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    ListBottom
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.product {
+  .title {
+    width:392rpx;
+    height:114rpx;
+    margin: 0 auto;
+    margin-top:40rpx;
+  }
+  .warp {
+    width:690rpx;
+    height: 3648rpx;
+    background:rgba(255,255,255,1);
+    border-radius:20rpx;
+    border:2rpx solid rgba(151,151,151,1);
+    margin: 0 auto;
+    padding: 40rpx 30rpx;
+    box-sizing: border-box;
+    .word {
+      font-size:32rpx;
+      color:rgba(51,51,51,1);
+      line-height:44rpx;
+      .blue {
+        color: #4354FF
+      }
+    }
+    .second-word {
+      font-size:28rpx;
+      color:rgba(102,102,102,1);
+      margin:40rpx 0 20rpx 0;
+    }
+    .image1 {
+      width:644rpx;
+      height:344rpx;
+    }
+    .line {
+      width:630rpx;
+      height:2rpx;
+      border-bottom: 1px dashed #979797;
+      margin: 60rpx 0 38rpx 0;
+    }
+    .image2 {
+      width:634rpx;
+      height:250rpx;
+    }
+    .image3 {
+      width:630rpx;
+      height:246rpx;
+    }
+    .image4 {
+      width:630rpx;
+      height:582rpx;
+    }
+    .image5 {
+      width:630rpx;
+      height:982rpx;
+    }
+  }
+  .btn {
+    width:590rpx;
+    height:100rpx;
+    background:linear-gradient(135deg,rgba(91,253,255,1) 0%,rgba(67,84,255,1) 100%);
+    border-radius:50rpx;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 100rpx;
+    font-size:36rpx;
+    font-weight:600;
+    color:rgba(255,255,255,1);
+    margin-top:120rpx;
+    margin-bottom:50rpx;
+  }
+}
+</style>

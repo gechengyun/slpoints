@@ -1,0 +1,170 @@
+<template lang="wxml">
+  <view
+    class="modals"
+    hidden="{{hidden}}"
+    catchtouchmove='true'
+  >
+    <view class="container" hidden="{{hidden}}" style="height: {{height}}rpx">
+      <view class="title" style="background: url('{{imgUrl}}')no-repeat center; background-size:cover;">{{title}}</view>
+      <view class="content">
+        <slot></slot>
+      </view>
+      <form bindsubmit="confirm" report-submit="true">
+        <view class="modal-btn-wrapper">
+          <view
+            class="cancel-btn"
+            bindtap="cancel"
+          >{{closeText}}</view>
+          <button
+            formType="submit"
+            class="confirm-btn"
+            plain="true"
+          >{{confirmText}}</button>
+        </view>
+      </form>
+    </view>
+    <view class="closeIcon" bindtap="cancelIcon" wx:if="{{flag === '1'}}">
+      <image src="/images/close1.png" class="image"/>
+    </view>
+    <view class="closeIcon" bindtap="cancel" wx:else>
+      <image src="/images/close1.png" class="image"/>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class ExModal extends wepy.component {
+  props = {
+    title: {
+      type: String
+    },
+    hidden: {
+      type: Boolean
+    },
+    confirmText: {
+      type: String
+    },
+    closeText: {
+      type: String
+    },
+    height: {
+      type: String,
+      default: 554
+    },
+    imgUrl: {
+      type: String,
+      default: 'https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/mall/%E5%BA%95%403x.png'
+    },
+    flag: {
+      type: String
+    }
+  };
+  methods = {
+    cancel() {
+      this.$emit('cancel');
+    },
+    confirm(e) {
+      let formId = e.detail.formId;
+      this.$emit('confirm', formId);
+    },
+    cancelIcon() {
+      this.$emit('cancelIcon');
+    }
+  };
+}
+</script>
+<style lang="less">
+button {
+  border: 0px !important;
+}
+.modals {
+  background-color: rgba(0, 0, 0, 0.4);
+  position: fixed;
+  flex-direction: column;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+  .container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 600rpx;
+    background-color: #ffffff;
+    border-radius: 28rpx;
+    border:4rpx solid rgba(56,62,153,1);
+    .title {
+      font-size: 48rpx;
+      font-weight: 600;
+      color: #fff;
+      line-height: 56rpx;
+      text-align: center;
+      height: 186rpx;
+      line-height: 186rpx;
+    }
+    .content {
+      font-size: 32rpx;
+      font-weight: 400;
+      color: rgba(51, 51, 51, 1);
+      text-align: center;
+      padding: 0 50rpx;
+      height: calc(100% - 151px);
+      display: flex;
+      flex-direction:column;
+      justify-content: center
+    }
+    .modal-btn-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: row;
+      height:116rpx;
+      line-height: 86rpx;
+      width: 100%;
+      .cancel-btn {
+        width: 184rpx;
+        height: 58rpx;
+        background: rgba(255, 255, 255, 1);
+        border-radius: 10rpx;
+        border: 2rpx solid rgba(67, 84, 255, 1);
+        color: rgba(67, 84, 255, 1)!important;
+        line-height: 60rpx;
+        text-align: center;
+        margin-left: 76rpx;
+      }
+      .confirm-btn {
+        width: 184rpx;
+        height: 60rpx;
+        background: rgba(67, 84, 255, 1);
+        border-radius: 10rpx;
+        border: 2rpx solid rgba(67, 84, 255, 1);
+        color: #fff !important;
+        line-height: 60rpx;
+        text-align: center;
+        font-size: 28rpx!important
+      }
+    }
+  }
+  .closeIcon {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-top: 30rpx;
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 60rpx;
+    .image{
+      width:100%;
+      height: 100%;
+    }
+  }
+  .hidden {
+    display: none;
+  }
+}
+</style>

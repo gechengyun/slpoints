@@ -1,0 +1,74 @@
+<template>
+  <view class="default">
+    <view class="productDefault"
+    style="margin-top:{{marginTop}}rpx;margin-bottom:{{marginBottom}}rpx!important;">
+      <view class="img"
+      style="width:{{imgWidth}}rpx;height:{{imgHeight}}rpx">
+        <image
+          class="image"
+          src="{{src}}"
+        />
+      </view>
+      <view class="tips"  style="color:{{color}}">{{tips}}</view>
+      <!-- <view style="height:200rpx" /> -->
+    </view>
+  </view>  
+</template>
+<script>
+import wepy from 'wepy';
+export default class ProductDefault extends wepy.component {
+  props = {
+    src: { type: String },
+    tips: {
+      type: String,
+      default: '暂无商品~'
+    },
+    marginTop: {
+      type: String,
+      default: 300
+    },
+    marginBottom: {
+      type: String,
+      default: 400
+    },
+    imgWidth: {
+      type: String,
+      default: 260
+    },
+    imgHeight: {
+      type: String,
+      default: 216
+    },
+    color: {
+      type: String,
+      default: 'rgba(255,255,255,1)'
+    }
+  }
+  watch = {
+    src(newValue, oldValue) {
+      console.log(newValue);
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.default {
+  overflow:hidden;
+  .productDefault {
+    width: 750rpx;
+    overflow:hidden;
+    .img {
+      margin: 0 auto;
+      .image {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .tips {
+      text-align: center;
+      margin-top: 42rpx;
+    }
+  }
+}
+
+</style>

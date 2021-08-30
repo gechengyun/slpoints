@@ -1,0 +1,123 @@
+<template lang="wxml">
+    <view class="myAuth">
+        <view class="header">
+          <view class="header-image">
+            <image class="image" src="http://blockchain-1253289665.file.myqcloud.com/images/poinsWallet/logo.png" />
+          </view>
+        </view>
+        <view class="auth-title">
+          <view>
+            积分商城申请获得以下权限
+          </view>
+          <view>
+            授权获得您的公开信息（昵称，图像等）
+          </view>
+        </view>
+        <view class="bottom-btn">
+          <button class="commonbtn" open-type="getUserInfo" plain='true' border="none"  bindgetuserinfo="bindGetUserInfo" >授权</button>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import api from '@/api/api';
+import {
+  AUTH_TOKEN,
+  USER_INFO,
+  UUID,
+  USER_SPECICAL_INFO
+} from '@/utils/constant';
+import tips from '@/utils/tip';
+export default class myAuth extends wepy.page {
+  config = {
+    navigationBarTitleText: '微信授权',
+    enablePullDownRefresh: true
+  };
+  data = {
+    detailUserInfo: null
+  };
+  methods = {
+    bindGetUserInfo({ detail }) {
+      if (this.$parent.globalData.isConnected) {
+        this.detailUserInfo = detail;
+        wepy.setStorageSync(USER_INFO, detail.userInfo);
+        this.getUserInfo();
+      } else {
+        wx.showToast({
+          title: '当前无网络',
+          icon: 'none'
+        });
+      }
+    }
+  };
+  async getUserInfo() {
+    let { code } = await wepy.login();
+    let resCode = await api.getAuthToken({ code: code });
+    if (resCode.data.httpCode === '200') {
+      if (resCode.data.data.member) {
+        wepy.setStorageSync(USER_SPECICAL_INFO, resCode.data.data.member);
+        wepy.setStorageSync(UUID, resCode.data.data.token);
+        if (this.$parent.globalData.loginFlag === 1) {
+          this.$parent.globalData.loginFlag = 2;
+        }
+        wx.navigateBack({
+          delta: 1
+        });
+        // wepy.switchTab({ url: '/pages/Me/index' });
+      } else {
+        let query = {
+          authToken: resCode.data.data.token,
+          encryptedData: this.detailUserInfo.encryptedData,
+          iv: this.detailUserInfo.iv
+        };
+        let res = await api.getUserInfo({ method: 'POST', query: query });
+        if (res.data.httpCode === '200') {
+          wepy.setStorageSync(AUTH_TOKEN, resCode.data.data.token);
+          wepy.navigateTo({ url: '/pages/MyAuth/loginIndexes' });
+        } else {
+          tips.error(res.data.msg);
+        }
+      }
+    } else {
+      tips.error(resCode.data.msg);
+    }
+  }
+}
+</script>
+
+<style lang='less' scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.myAuth {
+  width: 750rpx;
+  .header {
+    .header-image {
+      width: 200rpx;
+      height: 200rpx;
+      border-radius: 50%;
+      margin: 44rpx auto;
+    }
+  }
+  .auth-title {
+    text-align: center;
+    view:first-child {
+      font-size: 28rpx;
+      line-height: 60rpx;
+    }
+    view:last-child {
+      color: #666666;
+      font-size: 24rpx;
+      line-height: 32rpx;
+    }
+  }
+  button {
+    border:  0!important;
+    color:#fff!important;
+  }
+  .bottom-btn {
+    .commonbtn(50rpx);
+  }
+}
+</style>

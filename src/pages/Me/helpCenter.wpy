@@ -1,0 +1,197 @@
+<template lang="wxml">
+ <view class="helpCenter">
+   <BackHome bottom="50"/>
+   <view class="warp">
+    <repeat for="{{arrdata}}" wx:key="item.id" index="index" item="item">
+      <view class="centent_title flex-between" @tap="open_that" data-index="{{index}}">
+        <view class="title" >{{item.name}}?</view>
+        <image hidden="{{item.isTrue==true}}" src="/images/up.png" class="image"></image>
+        <image hidden="{{item.isTrue==false}}" src="/images/down.png" class="image"></image>
+      </view>
+      <view class="content_detail" hidden="{{!item.isTrue}}">
+        <text>{{item.content}}</text>
+      </view>
+    </repeat>
+    <view class="btn commonbtn" @tap="tel">客服热线</view>
+  </view>
+  <ListBottom marginTop="58"/>
+  <!-- 确认取消模态框 -->
+  <exModal
+    title="客服热线"
+    hidden="{{modalHidden}}"
+    @confirm.user="modalConfirm"
+    @cancel.user="modalCandel"
+    confirmText="呼叫"
+    closeText="取消"
+    height="630"
+    imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/4.png"
+  >
+    <view class="modal-content">
+      <view class="tel">400-000-8927</view>
+      <view class="desc">工作时间：周一至周日</view>
+      <view class="desc">9:00——22:00</view>
+    </view>
+  </exModal>
+ </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+import exModal from '@/components/ExModal';
+import BackHome from '@/components/backHome';
+export default class HelpCenter extends wepy.page {
+  config = {
+    navigationBarTitleText: '帮助中心',
+    enablePullDownRefresh: true
+  };
+  components = {
+    ListBottom,
+    exModal,
+    BackHome
+  }
+  data = {
+    arrdata: [
+      {
+        id: 1,
+        name: '1.积分如何导入',
+        content:
+        '授权登录首选兑小程序，进入“积分钱包”。点击“手动导入”图标，选择您要导入的企业积分，输入导入积分数量并勾选“已阅读并授权积分导入”后，点击“确认导入”按钮。',
+        isTrue: false
+      },
+      {
+        id: 2,
+        name: '2.不知道有哪些积分可导入怎么办',
+        content: '授权登录首选兑小程序，进入“积分钱包”。点击“全局查询”图标，默认使用授权首选兑小程序手机号进行查询，也可通过“切换”更换查询手机号。如果您有可导入积分，查询结果将显示在积分钱包页。',
+        isTrue: false
+      },
+      {
+        id: 3,
+        name: '3.积分如何兑换商品',
+        content: '“积分商城”选择积分商品，进入商品详情页，点击“立即兑换”按钮。选择兑换商品数量后，选择使用积分，点击“确认支付”。',
+        isTrue: false
+      },
+      {
+        id: 4,
+        name: '4.如何参与积分夺宝活动',
+        content: '“积分夺宝”页面，选择夺宝活动，点击“立即夺宝”。在夺宝活动详情页，点击“立即参与”按钮。选择兑换夺宝码数量后，点击“立即兑换”。选择使用积分，点击“立即兑换”。',
+        isTrue: false
+      },
+      {
+        id: 5,
+        name: '5.如何查看夺宝结果',
+        content: `“积分夺宝”页面，点击“我的夺宝”图标。选择已参与过的夺宝活动，进入夺宝详情页查看夺宝结果。`,
+        isTrue: false
+      },
+      {
+        id: 6,
+        name: '6.如何进行积分交换',
+        content: `点击导航栏“积分互换”，在待交换列表中，点击指定挂单，发送交换请求，即可交换成功。`,
+        isTrue: false
+      },
+      {
+        id: 7,
+        name: '7.如何提交积分交换',
+        content: `点击导航栏“积分互换”，点击“我要交换”按钮，在我要换出积分区域，选择积分名称（已导入积分）输入换出积分数量。在我需要的积分区域，选择积分名称（想要获得的积分）输入换入积分数量。选择交换周期，点击“提交”按钮。`,
+        isTrue: false
+      },
+      {
+        id: 8,
+        name: '8. 如何取消待交换积分',
+        content: `点击导航栏“积分互换”，点击“我的交换”。选择状态为“进行中”的交换。点击“取消”按钮。`,
+        isTrue: false
+      },
+      {
+        id: 9,
+        name: '9.如何查看积分明细',
+        content: `点击导航栏“我的”，点击“积分钱包”。在积分钱包页点击“积分明细”。进入积分明细页查看。`,
+        isTrue: false
+      },
+      {
+        id: 10,
+        name: '10.如何将领取兑换商品',
+        content: `到商品提供方指定的门店。进行小程序，在“我的”->“我的卡券”中，选择要领取的商品卡券，出示兑换商品二维码。门店工作人员核销成功后，领取商品。`,
+        isTrue: false
+      },
+      {
+        id: 11,
+        name: '11.积分如何退还',
+        content: `首选兑小程序上，积分一旦消耗就无法退还。`,
+        isTrue: false
+      }
+    ],
+    modalHidden: true
+  };
+  methods={
+    open_that: (event) => {
+      // console.log(event)
+      this.selectedIndex = event.currentTarget.dataset.index;
+      for (var i = 0; i < this.arrdata.length; i++) {
+        if (this.selectedIndex !== i) {
+          this.arrdata[i].isTrue = false;
+        }
+      }
+      this.arrdata[this.selectedIndex].isTrue = !this.arrdata[this.selectedIndex].isTrue;
+    },
+    tel() {
+      this.modalHidden = false;
+    },
+    // 呼叫
+    modalConfirm() {
+      wx.makePhoneCall({
+        phoneNumber: '400-000-8927' // 仅为示例，并非真实的电话号码
+      });
+      this.modalHidden = true;
+    },
+    // 确认关闭模态框
+    modalCandel() {
+      this.modalHidden = true;
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.helpCenter {
+  .warp {
+     padding: 0 30rpx;
+    .centent_title {
+      height: 104rpx;
+      line-height: 104rpx;
+      border-bottom:1px solid #F6F6F6;
+      .title {
+        font-size:32rpx;
+        font-weight:600;
+        color:rgba(51,51,51,1);
+      }
+      .image {
+        width:29rpx;
+        height:16rpx;
+        margin-top: 45rpx
+      }
+    }
+    .content_detail {
+      margin: 20rpx 0 20rpx 0;
+      color:rgba(102,102,102,1);
+      line-height:40rpx;
+    }
+    .btn {
+      .commonbtn(120rpx)
+    }
+  }
+  .modal-content {
+    .tel {
+      font-size:40rpx;
+      font-weight:600;
+      color:rgba(51,51,51,1);
+      line-height:56rpx;
+    }
+    .desc {
+      font-size:32rpx;
+      font-weight:400;
+      color:rgba(51,51,51,1);
+      line-height:44rpx;
+    }
+  }
+}
+</style>

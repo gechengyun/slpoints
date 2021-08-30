@@ -1,0 +1,38 @@
+<template lang="wxml">
+  <repeat for="{{tplData}}" wx:key="item.id" index="index" item="item">
+    <Template1 wx:if="{{item.templateId === '1'}}" :item.sync="item" />
+    <Template2 wx:elif="{{item.templateId === '2'}}" :item.sync="item" />
+    <Template3 wx:elif="{{item.templateId === '3'}}" :item.sync="item" />
+    <Template4 wx:elif="{{item.templateId === '4'}}" :item.sync="item" />
+  </repeat>
+</template>
+
+<script>
+import wepy from 'wepy';
+import Template1 from './Template1';
+import Template2 from './Template2';
+import Template3 from './Template3';
+import Template4 from './Template4';
+
+export default class TemplateIndex extends wepy.component {
+  props = {
+    tplData: Array
+  }
+  components = {
+    Template1,
+    Template2,
+    Template3,
+    Template4
+  }
+  data = {}
+  onLoad() {
+    // console.log(this.tplData);
+  }
+}
+</script>
+
+<style lang='less' scoped>
+.mb50 {
+  margin-bottom: 50rpx;
+}
+</style>

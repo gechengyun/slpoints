@@ -1,0 +1,422 @@
+<template lang="wxml">
+  <view class="exchangeOrder">
+    <view class="head">
+      <view class="wrap flex-between">
+        <view class="proImg">
+          <image class="image" src="{{proDetail.picture}}"/>
+        </view>
+        <view class="proDesc">
+          <view class="proName">{{proDetail.productName}}</view>
+          <view class="price flex-between">
+              <view class="title">兑换数量：</view>
+              <view class="num_icon">
+                <view
+                  class="points_icon"
+                  @tap='buttonTap(0)'
+                ><image src="/images/added.png" class="image"/></view>
+                <view class="point_input">
+                  <input
+                    focus="true"
+                    type="number"
+                    value="{{inputValue}}"
+                    bindblur="bindblurPay"
+                    bindinput="bindKeyInput"
+                  />
+                </view>
+                 <view
+                  class="points_icon"
+                  @tap="buttonTap(1)"
+                ><image src="/images/add.png" class="image"/></view>
+              </view>
+            </view>
+        </view>
+      </view>
+    </view>
+    <view class="strip" />
+    <view class="payPoints flex-between">
+      <view class="left">应付积分（{{proDetail.pointName}}）：</view>
+      <view class="right flex-between">
+        <view>{{proDetail.totalPoints}}</view>
+        <view class="jf">积分</view>
+      </view>
+    </view>
+    <view class="strip" />
+    <button class="btn commonbtn" @tap="pay">确认支付</button>
+    <!-- 确认取消模态框 -->
+    <exModal1
+      title="兑换确认"
+      hidden="{{modalHidden1}}"
+      height="554"
+      @confirm.user="modalConfirm1"
+      @cancel.user="modalCandel1"
+      confirmText="确认"
+      closeText="取消"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/0.png"
+    >
+      <view class="modal-content">
+        您确认使用{{proDetail.totalPoints}}{{proDetail.pointName}}兑换该商品吗？
+      </view>
+    </exModal1>
+    <exModal
+      title="积分不足"
+      hidden="{{modalHidden}}"
+      height="510"
+      @confirm.user="modalConfirm"
+      @cancel.user="modalCandel"
+      @cancelIcon.user="cancelIcon"
+      confirmText="去导入"
+      closeText="去交换"
+      flag="1"
+      imgUrl="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/title/0.png"
+    >
+      <view class="modal-content">
+        您的积分不足，请去导入积分或去积分互换交换积分类型
+      </view>
+    </exModal>
+    <!-- 确认取消模态框 -->
+
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import WepyHTML from 'wepy-html';
+import PDetail from './components/ProDetail';
+import exModal from '@/components/ExModal';
+import tips from '@/utils/tip';
+import api from '@/api/EdaApi';
+export default class ExchangeOrder extends wepy.page {
+  config = {
+    navigationBarTitleText: '兑换订单',
+    enablePullDownRefresh: false,
+    disableScroll: true
+  };
+  components = {
+    'wepy-html': WepyHTML,
+    PDetail,
+    exModal,
+    exModal1: exModal
+  }
+  data = {
+    modalHidden: true,
+    modalHidden1: true,
+    proDetail: '',
+    inputValue: 1
+  };
+  onLoad(options) {
+    this.proDetail = JSON.parse(options.query);
+  }
+  onShow() {
+  }
+  methods = {
+    // 输入框
+    bindKeyInput(e) {
+      this.inputValue = e.detail.value * 1;
+      this.proDetail.totalPoints = this.proDetail.salePoints * this.inputValue;
+      this.$apply();
+    },
+    // 确认关闭模态框
+    cancelIcon() {
+      this.modalHidden = true;
+    },
+    modalCandel() {
+      this.modalHidden = true;
+      wx.switchTab({
+        url: '/pages/Exchange/index'
+      });
+    },
+    modalCandel1() {
+      this.modalHidden1 = true;
+    },
+    // 去导入
+    modalConfirm() {
+      this.modalHidden = true;
+      wx.navigateTo({
+        url: '/pages/PointsWallet/index'
+      });
+    },
+    modalConfirm1() {
+      this.modalHidden1 = true;
+      this.payOrder();
+    },
+    async buttonTap(flag) {
+      if (flag === '1') {
+        let query = {
+          productCount: this.inputValue + 1,
+          productId: this.proDetail.productId
+        };
+        let resp = await api.checkPoint({ method: 'POST', query });
+        if (resp.data.httpCode === '400') {
+          this.modalHidden = false;
+          this.$apply();
+          return false;
+        }
+        if (resp.data.httpCode === '200') {
+          this.inputValue++;
+        } else {
+          wx.showToast({
+            title: resp.data.msg,
+            icon: 'none',
+            mask: true,
+            duration: 2000
+          });
+        }
+      } else {
+        if (this.inputValue <= 1) {
+          return false;
+        }
+        this.inputValue--;
+      }
+      this.proDetail.totalPoints = this.proDetail.salePoints * this.inputValue;
+      this.$apply();
+    },
+    // 失去焦点
+    // async bindblurPay() {
+    //   let query = {
+    //     productCount: this.inputValue,
+    //     productId: this.proDetail.productId
+    //   };
+    //   let resp = await api.checkPoint({ method: 'POST', query });
+    //   if (resp.data.httpCode === '400') {
+    //     this.modalHidden = false;
+    //     this.$apply();
+    //   } else {
+    //     wx.showToast({
+    //       title: resp.data.msg,
+    //       icon: 'none',
+    //       mask: true,
+    //       duration: 2000
+    //     });
+    //   }
+    // },
+    // 确认支付
+    async pay() {
+      if (this.inputValue === 0 || this.inputValue === '') {
+        tips.error('请输入数量');
+        return false;
+      }
+      let query = {
+        productCount: this.inputValue,
+        productId: this.proDetail.productId
+      };
+      let resp = await api.checkPoint({ method: 'POST', query });
+      if (resp.data.httpCode === '200') {
+        this.modalHidden1 = false;
+      } else if (resp.data.httpCode === '400') {
+        this.modalHidden = false;
+      } else {
+        wx.showToast({
+          title: resp.data.msg,
+          icon: 'none',
+          mask: true,
+          duration: 2000
+        });
+      }
+      this.$apply();
+    }
+  }
+  // 支付
+  async payOrder() {
+    let payList = [{deductNum: this.proDetail.totalPoints, pointCode: this.proDetail.pointCode, pointName: this.proDetail.pointName, tranNum: this.proDetail.totalPoints}];
+    this.$apply();
+    this.modalHidden1 = true;
+    let query = {
+      orderPoints: this.proDetail.totalPoints,
+      orderSource: 1,
+      payList,
+      productCount: this.inputValue,
+      productId: this.proDetail.productId
+    };
+    wx.reLaunch({
+      url: '/package_saleProDetail/pages/Detail/paySucc?query=' + JSON.stringify(query)
+    });
+  }
+}
+</script>
+<style lang="less" scoped>
+button {
+  padding: 0px !important;
+}
+</style>
+<style lang="less" scoped>
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+.exchangeOrder {
+  .head {
+    width: 750rpx;
+    .wrap {
+      width: 690rpx;
+      margin: 0 auto;
+      margin-top: 20rpx;
+      margin-bottom: 20rpx;
+      .proImg {
+        width: 160rpx;
+        height: 160rpx;
+      }
+      .proDesc {
+        flex: 1;
+        margin-left: 20rpx;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        .proName {
+          font-weight: 600;
+          color: rgba(51, 51, 51, 1);
+          line-height: 40rpx;
+        }
+        .price {
+          font-size: 24rpx;
+          font-weight: 400;
+          color: rgba(102, 102, 102, 1);
+          margin-top: 10rpx;
+          .title {
+            margin-top: 30rpx;
+          }
+          .num_icon {
+            display: flex;
+            flex-wrap: nowrap;
+            .points_icon {
+              width: 48rpx;
+              height: 48rpx;
+              margin-top: 22rpx;
+              text-align: center;
+              line-height: 48rpx;
+            }
+            .point_input {
+              width: 62rpx;
+              margin-top: 22rpx;
+              text-align: center;
+              padding: 0 8rpx 0 8rpx;
+              input {
+                height: 48rpx !important;
+                font-size:40rpx;
+                font-weight:bold;
+                color:rgba(0,0,0,1);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .payPoints {
+    height: 88rpx;
+    width: 100%;
+    line-height: 88rpx;
+    .left {
+      font-size: 24rpx;
+      color: rgba(102, 102, 102, 1);
+      margin-left: 30rpx;
+    }
+    .right {
+      font-size: 40rpx;
+      font-weight: bold;
+      color: rgba(51, 51, 51, 1);
+      margin-right: 30rpx;
+      .jf {
+        font-size: 20rpx;
+        font-weight: 400;
+        margin-left: 10rpx;
+      }
+    }
+  }
+  .content {
+    .title {
+      width: 690rpx;
+      height: 104rpx;
+      margin: 0 auto;
+      font-size: 32rpx;
+      font-weight: 600;
+      color: rgba(51, 51, 51, 1);
+      border-bottom: 1px solid #d8d8d8;
+      line-height: 104rpx;
+    }
+    .wrap {
+      height: 480rpx;
+      .item {
+        width: 650rpx;
+        margin: 0 auto;
+        .top {
+          margin-top: 28rpx;
+          .checkBox {
+            width: 28rpx;
+            height: 28rpx;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 4rpx;
+            border: 1px solid rgba(216, 216, 216, 1);
+            margin-top: 5rpx;
+            line-height: 28rpx;
+            text-align:center;
+          }
+          .pointName {
+            flex: 1;
+            font-weight: 600;
+            color: rgba(51, 51, 51, 1);
+            margin-left: 10rpx;
+          }
+          .arrow {
+            width: 29rpx;
+            height: 16rpx;
+          }
+        }
+        .container {
+          width: 570rpx;
+          margin: 0 auto;
+          height: 78rpx;
+          .points_icon {
+            width: 48rpx;
+            height: 48rpx;
+            text-align: center;
+            line-height: 48rpx;
+            margin-top: 30rpx;
+          }
+          .slider {
+            width: 434rpx;
+            margin-top: 45rpx;
+          }
+        }
+        .pointNum {
+          display: flex;
+          flex-direction: row-reverse;
+          font-size: 24rpx;
+          color: rgba(51, 51, 51, 1);
+          margin-right: 40rpx;
+          margin-top: 8rpx;
+        }
+        .totalPoints {
+          display: flex;
+          flex-direction: row-reverse;
+          margin-top: 20rpx;
+          font-size: 24rpx;
+          font-weight: 400;
+          color: rgba(102, 102, 102, 1);
+          margin-bottom: 30rpx;
+        }
+      }
+    }
+    .bottom {
+      width: 690rpx;
+      height: 104rpx;
+      margin: 0 auto;
+      font-weight: 600;
+      color: rgba(51, 51, 51, 1);
+      border-top: 1px solid #d8d8d8;
+      line-height: 104rpx;
+      .left {
+        font-size: 24rpx;
+        font-weight: 400;
+        color: rgba(102, 102, 102, 1);
+        margin-left: 20rpx;
+      }
+      .right {
+        font-size: 32rpx;
+        font-weight: 400;
+        color: rgba(51, 51, 51, 1);
+        margin-right: 20rpx;
+      }
+    }
+  }
+  .btn {
+    .commonbtn(50rpx);
+  }
+}
+</style>

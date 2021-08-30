@@ -1,0 +1,82 @@
+<template>
+  <view class="appBottom">
+    <image src="/images/tabIcon/bottom.png" class="image"/>
+    <view class="flex-between wrap">
+      <navigator url="/pages/Home/index" hover-class="none"  class="item" open-type="switchTab">
+        <image src="{{src}}" class="icon"/>
+        <view class="word">首页</view>
+      </navigator>
+      <navigator url="/pages/Mall/index" hover-class="none"  class="item" open-type="switchTab">
+        <image src="{{src1}}" class="icon"/>
+        <view class="word">积分商城</view>
+      </navigator>
+      <navigator url="/pages/Exchange/index" hover-class="none"  class="item" open-type="switchTab">
+        <image src="{{src2}}" class="icon"/>
+        <view class="word">积分互换</view>
+      </navigator>
+      <navigator url="/pages/Me/index" hover-class="none"  class="item" open-type="switchTab">
+        <image src="{{src3}}" class="icon"/>
+        <view class="word">我的</view>
+      </navigator>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class Bottom extends wepy.component {
+  props = {
+    src: {
+      type: String,
+      default: '/images/tabIcon/home.png'
+    },
+    src1: {
+      type: String,
+      default: '/images/tabIcon/mall.png'
+    },
+    src2: {
+      type: String,
+      default: '/images/tabIcon/exchange.png'
+    },
+    src3: {
+      type: String,
+      default: '/images/tabIcon/me.png'
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+@import '../styles/variables';
+@import '../styles/mixins';
+.appBottom {
+  .image {
+    height: 158rpx;
+    width: 750rpx;
+    position: fixed;
+    bottom: 0;
+    z-index:1;
+  }
+  .wrap {
+    height: 118rpx;
+    width: 554rpx;
+    position: fixed;
+    bottom: 0;
+    left: 98rpx;
+    z-index:2;
+    margin-top:20rpx;
+    .item {
+      display:flex;
+      flex-direction: column;
+      .icon {
+        width:48rpx;
+        height:48rpx;
+        margin: 0 auto;
+      }
+      .word {
+        font-size:20rpx;
+        color: #fff;
+        text-align: center;
+      }
+    }
+  }
+}
+</style>

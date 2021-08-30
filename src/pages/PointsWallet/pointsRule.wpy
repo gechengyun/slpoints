@@ -1,0 +1,70 @@
+<template>
+  <view class="pointsRule">
+    <BackHome bottom="50"/>
+    <view class="rule-box">
+      <view class="rule-header">1.什么是企业积分？</view>
+      <view class="rule-content">企业积分是指定各第三方企业对于用户在该企业相关指定行为的回馈。</view>
+      <view class="rule-header">2.如何获得企业积分？</view>
+      <view class="rule-content">用户在第三方企业完成相关指定行为后即可获得企业积分。</view>
+      <view class="rule-header">3. 企业积分如何带入平台？</view>
+      <view class="rule-content">用户登录本平台客户端后，如需要使用某企业积分时，通过积分导入功能将该第三方企业积分带入本平台。</view>
+      <view class="rule-header">4. 企业积分如何带出平台？</view>
+      <view class="rule-content">通过积分导入功能带入本平台的积分暂无法带出平台，全部导入积分可以在积分过期前在本平台内使用。</view>
+      <view class="rule-header">5. 企业积分如何带出平台？</view>
+      <view class="rule-content">通过积分导入功能带入本平台的积分暂无法带出平台，全部导入积分可以在积分过期前在本平台内使用。</view>
+      <view class="rule-header">6.企业积分是否存在有效期？</view>
+      <view class="rule-content">各第三方企业积分有效期，以各指定第三方企业积分有效期为准。有效期在一个月之内的积分，无法进行积分交换。仅可兑换商品或参与积分活动。</view>
+      <view class="rule-header">7. 积分作用规则</view>
+      <view class="rule-content">在本平台上可使用一种或多种积分组合的方式参与兑换礼品，参与积分互动活动。积分使用时，系统将优化使用较早获取的积分，由于各礼品或互动活动的积分数量不同，积分数量需大于等于所需积分数量。</view>
+      <view class="rule-header">8. 积分交换规则</view>
+      <view class="rule-content">在本平台上可使用任意一种积分与其它积分按比例进行交换。交换比例完全按照用户个人意愿而定。换入积分的有效期与换出积分有效期一致。积分有效期不会因为交换而延长。</view>
+      <view class="rule-header">9.积分为什么会被冻结？</view>
+      <view class="rule-content">处于交换中的积分，会被冻结。当取消交换后即可解冻。</view>
+      <view class="rule-header">10.为什么积分交换推荐比例不一样？</view>
+      <view class="rule-content">平台根据最近交换成交的交易进行计算平均价作为推荐比例。</view>
+      <view class="rule-header">11.为什么积分交换过程中会显示小数点？</view>
+      <view class="rule-content">积分交换过程中，由于交换比例不同，系统在自动交易过程中有可能会生成小数点。小数部分在积分消耗时无法使用。因此积分小数部分只会在挂单进行中显示。</view>
+      <view class="rule-header">特别声明</view>
+      <view class="rule-content">1. 本平台不产生任何积分，平台上积分均来自第三方企业。用户在平台上导入与使用各企业积分即表示您已认可，并愿意受本规则的事约束。</view>
+      <view class="rule-content">2. 因使用第三方技术手段恶意攻击或篡改到使用积分数量、兑换礼品发生错误，本平台不负法律或经济责任。</view>
+      <view class="rule-content">3. 积分扣减需实时调用企业接口，由于网络环境与企业接口原因造成积分消耗活动失败。本平台概不负责。</view>
+      <view class="rule-content">4. 如有异议，请通过“我的-帮助中心-联系客服”进行反馈</view>
+    </view>
+    <ListBottom marginTop="58"/>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+import BackHome from '@/components/backHome';
+export default class serviceProtocol extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分规则'
+  };
+  components ={
+    ListBottom,
+    BackHome
+  }
+}
+</script>
+<style lang='less' scoped>
+.pointsRule {
+  color: #333333;
+  .rule-box {
+    width: 700rpx;
+    margin: 0 auto;
+    .rule-header {
+      padding-top: 20rpx;
+      padding-bottom: 10rpx;
+      font-weight: 500;
+    }
+    .rule-content {
+      line-height: 40rpx;
+    }
+    .rule-index {
+      text-indent: 40rpx;
+    }
+  }
+}
+</style>

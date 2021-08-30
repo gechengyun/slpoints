@@ -1,0 +1,117 @@
+<template>
+  <view class="prizeRule">
+    <BackHome bottom="50" flag="1"/>
+    <view class="content">
+      <view class="title">
+        亲爱的会员您好！ 
+      </view>
+      <view class="wrap"> 
+           {{prizeDetail.receiveRule}} 
+      </view>
+      <view class="prize">
+        <view class="name">{{prizeDetail.prizeName}}</view>
+        <view class="num item">夺宝号码：{{prizeDetail.prizeRecords[0].treasureCode}}</view>
+        <view class="time item">开奖时间：{{prizeDetail.lotteryTime}}</view>
+      </view>
+    </view>
+    <view class="btn-wrap">
+      <navigator hover-class="none" url="/pages/CardRoll/index" class="btn btn1">
+        我的卡券
+      </navigator>  
+      <view class="btn btn2" @tap="tel">联系我们</view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import BackHome from '@/components/backHome';
+import api from '@/api/api';
+export default class prizeRule extends wepy.page {
+  config = {
+    navigationBarTitleText: '领奖须知',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537'
+  }
+  components = {
+    BackHome
+  };
+  data = {
+    prizeDetail: ''
+  };
+  onLoad(options) {
+    this.PrizeDetail(options.id);
+  }
+  methods={
+    tel () {
+      wx.makePhoneCall({
+        phoneNumber: '400-000-8927' // 仅为示例，并非真实的电话号码
+      });
+    }
+  }
+  // 奖品详情
+  async PrizeDetail(id) {
+    let resp = await api.getTreasurePeriodDatil({
+      prizeId: id
+    });
+    if (resp.data.httpCode === '200') {
+      this.prizeDetail = resp.data.data;
+      this.$apply();
+    }
+  }
+}
+</script>
+<style lang='less' scoped>
+.prizeRule {
+  width:750rpx;
+  height: 1448rpx;
+  background:url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/pointsTreasures/pirzeRule.png")no-repeat center;
+  background-size: cover;
+  .content {
+    width:560rpx;
+    margin: 0 auto;
+    padding-top:258rpx;
+    color:#fff;
+    font-size:32rpx;
+    .wrap {
+      margin-top:40rpx;
+      line-height:44rpx;
+    }
+    .prize {
+      margin-top:80rpx;
+      text-align: center;
+      .name {
+        font-weight:600;
+        line-height:44rpx;
+      }
+      .item {
+        margin-top: 20rpx;
+      }
+    }
+  }
+  .btn-wrap {
+    margin-top: 236rpx;
+    .btn {
+      width:590rpx;
+      height:80rpx;
+      margin: 0 auto;
+      border-radius:10rpx;
+      text-align: center;
+      line-height: 80rpx;
+      font-size:32rpx;
+      font-weight:600;
+      color:rgba(51,51,51,1);
+      border:2px solid rgba(255,255,255,1);
+    }
+    .btn1 {
+      background:rgba(255,255,255,1);
+    }
+    .btn2 {
+      margin-top: 60rpx;
+      color:#fff;
+    }
+  }
+}
+</style>

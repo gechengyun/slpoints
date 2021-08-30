@@ -1,0 +1,225 @@
+<template lang="wxml">
+ <view class="me">
+   <view class="sharp">
+     <image src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E4%B8%AA%E4%BA%BA%E4%B8%AD%E5%BF%83bg%403x.png"  class="image"/>
+   </view>
+   <view class="head">
+     <view class="avatar">
+        <view class="avatar-image" wx:if="{{userSpecialInfo.avatarUrl || userInfo.avatarUrl}}">
+          <image class="image" src="{{userSpecialInfo.avatarUrl || userInfo.avatarUrl}}" />
+        </view>
+       <view class="avatar-noImg" wx:else/>
+     </view>
+      <view class="loginBtn avatarName" wx:if="{{userSpecialInfo}}">
+        <view>{{userSpecialInfo.name}}</view>
+        <view>{{phone}}</view>
+      </view>
+      <view class="loginBtn" wx:else  @tap="tapLogin">
+        点击登录
+      </view>
+   </view>
+   <view class="content">
+      <navigator url="/pages/PointsWallet/index" hover-class="none"  class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E9%92%B1%E5%8C%85%403x.png"/>
+        <view class="text">积分钱包</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+      <navigator url="/pages/PointsWallet/pointsList" hover-class="none"  class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E6%98%8E%E7%BB%86%E8%B4%A6%403x.png"/>
+        <view  class="text">积分明细</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+   </view>
+   <view class="content">
+      <navigator hover-class="none" url="/pages/CardRoll/index" class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E5%8D%A1%E5%88%B8%E5%8C%85%403x.png"/>
+        <view class="text">我的卡券</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+      <navigator url="/pages/Order/index" hover-class="none" class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E5%85%91%E6%8D%A2%E8%AE%B0%E5%BD%95%20(2)%403x.png"/>
+        <view  class="text">我的兑换</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+      <navigator url="/pages/TreasureList/myTreasure" hover-class="none" class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E5%A5%96%E5%93%81%403x.png"/>
+        <view class="text">我的夺宝</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+      <navigator url="/pages/Exchange/exchangeRecordList" hover-class="none" class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E6%94%B6%E6%94%AF%E6%98%8E%E7%BB%86%403x.png"/>
+        <view  class="text">互换记录</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+      <navigator url="/pages/Me/helpCenter" hover-class="none" class="item">
+        <image class="icon" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E5%B8%AE%E5%8A%A9%20(2)%403x.png"/>
+        <view  class="text">帮助中心</view>
+        <image class="arrow" src="https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E8%BF%9B%E5%85%A5%E8%AF%A6%E6%83%85%402x.png"/>
+      </navigator>
+   </view>
+   <ListBottom marginTop="126" height="120"/>
+   <Bottom src3='/images/tabIcon/med.png'/>
+ </view>
+</template>
+<script>
+import wepy from 'wepy';
+import { USER_INFO, USER_SPECICAL_INFO } from '@/utils/constant';
+import ListBottom from '@/components/listBottom';
+import Bottom from '@/components/bottom';
+export default class Me extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的',
+    enablePullDownRefresh: false,
+    navigationBarBackgroundColor: '#242537',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#242537',
+    disableScroll: false
+  };
+  components = {
+    ListBottom,
+    Bottom
+  }
+  data = {
+    userInfo: null,
+    userSpecialInfo: null,
+    phone: ''
+  };
+  onShow() {
+    this.userInfo = wepy.getStorageSync(USER_INFO);
+    this.userSpecialInfo = wepy.getStorageSync(USER_SPECICAL_INFO);
+    if (this.userSpecialInfo.phone) {
+      this.phone = this.userSpecialInfo.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+    }
+  }
+  onLoad() {
+    let userSpecialInfo = wepy.getStorageSync(USER_SPECICAL_INFO);
+    if (userSpecialInfo.phone) {
+      this.phone = userSpecialInfo.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+    }
+  }
+  methods = {
+    tapLogin() {
+      this.checkSettingStatus();
+    }
+  }
+  // 判断是否授权
+  async checkSettingStatus() {
+    try {
+      let auth = await wepy.getSetting(); // 调用getSetting Api
+      let authSetting = auth.authSetting; // 获取authSetting用来判断是否授权
+      if (authSetting['scope.userInfo']) {
+        wepy.navigateTo({ url: '/pages/MyAuth/loginIndexes' });
+      } else {
+        wepy.navigateTo({ url: '/pages/MyAuth/index' });
+      }
+    } catch (error) {
+      console.log(error, 'checkSettingStatus');
+    }
+  }
+}
+</script>
+<style lang='less'>
+page {
+  background-color: #242537;
+}
+</style>
+<style lang="less" scoped>
+@import '../../styles/variables';
+@import '../../styles/mixins';
+.me {
+  color:#fff;
+  position: relative;
+  .sharp {
+    width:356rpx;
+    height: 264rpx;
+    position: absolute;
+    top:0;
+    right:0;
+    z-index: -10;
+  }
+  .head {
+    width: 750rpx;
+    height: 152rpx;
+    display: flex;
+    flex-wrap:nowrap;
+    margin-top:20rpx;
+    margin-bottom: 20rpx;
+    .avatar {
+      margin-left:52rpx;
+      margin-top:10rpx;
+      position: relative;
+      .avatar-noImg {
+        width:146rpx;
+        height: 142rpx;
+        background:url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/%E5%A4%B4%E5%83%8F%403x.png")no-repeat center;
+        background-size: cover;
+      }
+      .avatar-image {
+        width:146rpx;
+        height: 142rpx;
+        background:url("https://blockchain-1253289665.cos.ap-beijing.myqcloud.com/images/me/avatorImg.png")no-repeat center;
+        background-size: cover;
+        position: relative;
+          .image {
+            width:120rpx;
+            height: 120rpx;
+            position: absolute;
+            z-index: -1;
+            top:20rpx;
+            left: 10rpx;
+          }
+      }
+    }
+    .loginBtn {
+      width:152rpx;
+      height:52rpx;
+      border-radius:10rpx;
+      border:1rpx solid rgba(255,255,255,1);
+      margin-left:22rpx;
+      line-height: 52rpx;
+      text-align:center;
+      margin-top:45rpx;
+      cursor: pointer;
+    }
+    .avatarName {
+      border:0rpx solid;
+      text-align:left;
+      margin-top:20rpx;
+    }
+  }
+  .content {
+    width:690rpx;
+    border:1px solid #242537;
+    margin:0 auto;
+    background:rgba(71,73,105,0.8);
+    border-radius:10px;
+    margin-bottom:40rpx;
+    :nth-last-child(1) {
+      border-bottom: 0px!important
+    }
+    .item {
+      width:630rpx;
+      margin:0 auto;
+      height: 120rpx;
+      line-height: 120rpx;
+      border-bottom: 1px solid #242537;
+      .icon {
+        float: left;
+        width:40rpx;
+        height: 40rpx;
+        margin-top:40rpx;
+      }
+      .text {
+        float: left;
+        margin-left:30rpx;
+      }
+      .arrow {
+        width:27rpx;
+        height:24rpx;
+        float: right;
+        margin-top:48rpx
+      }
+    }
+  }
+}
+</style>

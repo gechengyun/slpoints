@@ -1,0 +1,78 @@
+<template>
+  <view class="service-protocol">
+    <view class="rule-box">
+      <view class="rule-header rule-index ">欢迎使用首选兑积分通兑平台，登录即表示您已同意以下条款与细则，因此，请仔细阅读并全面了解。</view>
+      <view class="rule-header">服务协议确认</view>
+      <view class="rule-content">首选兑积分通兑平台隶属北京首客慧联科技有限责任公司。根据相关法律、法规进行网上积分兑换商品和各种增值服务业务。依照本协议以下条款在本平台登录的用户，并同意以下服务条款，方有资格享受本平台提供的相应服务，并受本协议条款约束。</view>
+      <view class="rule-header">内容所有权</view>
+      <view class="rule-content">首选兑积分通兑平台提供的服务内容可能包括：文字、图片、商品、积分交换。所有这些内容受版权、商标和其它财产所有权法律的保护。用户只有在获得本平台或其它相关权利人的授权之后才能使用这些内容，而不能擅自复制、再造这些内容、或创造与内容有关的衍生品。</view>
+      <view class="rule-header">信息提供</view>
+      <view class="rule-content">为保障用户的合法权益，避免在服务时因用户资料与真实情况不符而发生纠纷，请用户填写时，务必按照真实、全面、准确的原则填写。对因用户自身原因而造成的不能服务情况，本平台概不负责。如果用户提供的资料包含有不正确的信息，本平台保留结束该用户使用服务资格的权利。</view>
+      <view class="rule-header">用户隐私保护</view>
+      <view class="rule-content rule-index">1、保护用户隐私是本平台的基本政策，本平台保证不对外公开或向第三方提供用户资料以及用户使用平台服务时存储在本平台的非公开内容，但下列情况除外：事先获得用户的明确授权、根据有关法律法规要求、按照相关政府部门要求、为维护社会公众利益、为维护本平台合法权益</view>
+      <view class="rule-content rule-index">2、本平台可能与第三方合作向用户提供相关服务，在些情况下，如该第三方同意承担与本平台同等的保护用户隐私的责任，则本平台可将用户资料等提供给该第三方。</view>
+      <view class="rule-content rule-index">3、在不透露单个用户隐私资料的前提下，本平台有权对整个用户数据进行分析并对用户数据进行商业上的利用。</view>
+      <view class="rule-header">资料安全</view>
+      <view class="rule-content">1、对用户信息本平台提供最大限度的安全保障。同时，用户务必对其个人帐号等信息保密，以免被盗用或遭篡改。用户如发现上述情况请立即与本平台联系。</view>
+      <view class="rule-content">2、用户自愿将区块链钱包私钥交于本平台托管，私钥仅用于积分消耗以及交换等活动，平台不会将私钥泄露给任何第三方。</view>
+      <view class="rule-header">用户权利和义务</view>
+      <view class="rule-content rule-index">1、用户有权随时对自己的个人信息进行查询、修改和删除。</view>
+      <view class="rule-content rule-index">2、用户享有在本平台所提交的积分互动活动，以及积分交换等服务内容。</view>
+      <view class="rule-content rule-index">3、本平台仅提供相关积分服务，除此之外与相关网络服务有关的设备（如电脑、调制解调器以及其他与接入互联网有关的装置）以及所需的费用（如接入互联网而支付的电话费以及上网费）均应由用户自行负担。</view>      
+      <view class="rule-content rule-index">4、用户自登录本平台客户端起，即表示完全了解并同意本平台积分规则，将按积分规则的约定使用积分。</view>
+      <view class="rule-header">免责声明</view>
+      <view class="rule-content rule-index">1、用户明确同意其使用本平台服务所存在的风险将完全由其自己承担；因其使用本平台相关服务而产生的一切后果也由其自己承担，本平台对用户不承担任何责任。</view>
+      <view class="rule-content rule-index">2、本平台不担保网络服务一定能㤟用户的要求，也不担保网络服务不会中断，对网络服务的及时性、安全性、准确性也都不作担保。</view>
+      <view class="rule-content rule-index">3、本平台上积分兑换礼品均由第三方企业提供，使用积分兑换后，如遇产品问题需要退换，需要与该礼品提供方申请，本平台对用户不承担任何责任。</view>
+      <view class="rule-header">服务变量、中断或终止</view>
+      <view class="rule-content rule-index">1、如因系统维护或升级的需要而需暂停服务，本平台将尽可能先进行通告。</view>
+      <view class="rule-content rule-index">2、如发生下列任何一种情形，本平台有权随时中断或终止向用户提供服务而无需通知：用户提供的个人资料不真实、用户违反本协议中规定的使用规则。</view>
+      <view class="rule-content rule-index">3、除前款所述情形，本平台同时保留在不事先通知用户的情况下随时中断或终止部分或全部服务的权利，对于所有服务的中断或终止而造成的任何损失本平台无需对用户或任何第三方承担任何责任。</view>
+      <view class="rule-header">违约赔偿</view>
+      <view class="rule-content">用户同意保障和维护本平台以及其他用户的利益，如因用户违反有关法律、法规或本协议项下的任何条款而给本平台或任何其他第三人造成损失，用户同意承担由此造成的损害赔偿责任。</view>
+      <view class="rule-header">法律管辖</view>
+      <view class="rule-content rule-index">1、本协议的订立、执行和解释以及争议的解决均应适用中国法律。</view>
+      <view class="rule-content rule-index">2、如双方就本协议内容或其执行发行任何争议，双方应尽量友好协商解决；协商不成时，任何一方均可向本平台所在地的人民法院提起诉讼。</view>
+      <view class="rule-header">其他规定</view>
+      <view class="rule-content rule-index">1、本协议构成双方对本协议之约定事项以及其他有关事宜的完整协议，除本协议规定的之外，未赋予本协议各方其他权利。</view>
+      <view class="rule-content rule-index">2、如本协议中的任何条款无论因何种原因完全或部分无效或不具有执行力，本协议的其余条款仍应有效并且有约束力。</view>
+      <view class="rule-content rule-index">3、本协议中的标题仅为方便而设，在解释本协议时应被忽略。</view>
+      <view class="rule-content">本协议适用中华人民共和国法律，因任何一方出现违反法律的行为而造成协议条款的不能执行，都应由责任方自行负责并补偿由此面给对方造成的损失。</view>
+      <view class="rule-content">本协议最终解释权属于首选兑积分通兑平台北京首旅慧联科技有限责任公司。</view>
+    </view>
+     <ListBottom marginTop="30"/>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import ListBottom from '@/components/listBottom';
+export default class serviceProtocol extends wepy.page {
+  config = {
+    navigationBarTitleText: '用户协议'
+  };
+  components = {
+    ListBottom
+  }
+}
+</script>
+<style lang='less' scoped>
+.service-protocol {
+  color: #333333;
+  .rule-box {
+    width: 700rpx;
+    margin: 0 auto;
+    .rule-header {
+      padding-top: 20rpx;
+      padding-bottom: 10rpx;
+      font-weight: 500;
+    }
+    .rule-content {
+      line-height: 40rpx;
+    }
+    .rule-index {
+      text-indent: 40rpx;
+    }
+  }
+}
+</style>
